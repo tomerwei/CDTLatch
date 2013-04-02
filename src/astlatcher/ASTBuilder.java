@@ -61,26 +61,26 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		symbolTablePointers.add( "i" );
 		//need to replace later with relevant code
 		/*
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTParameterDeclaration ]
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
-[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
-[ h org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTParameterDeclaration ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
+		[ * 	org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
+		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
+		[ h org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
 
-or:
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarationStatement ]
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTSimpleDeclaration ]
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
-[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
-[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
-[ j org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
+		or:
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarationStatement ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTSimpleDeclaration ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
+		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
+		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
+		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
+		[ j org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
 
 		 */			
 	}
 	
-	private void initNextFields(String[] nextFlds) 
+	private void initNextFields( String[] nextFlds ) 
 	{		
 		this.nextFields           =  new HashSet<String>();
 
@@ -92,6 +92,11 @@ or:
 	{
 		return nextFields.contains( fldName );
 	}
+	
+	private boolean isPointer( String varName )
+	{
+		return symbolTablePointers.contains( varName );
+	}	
 
 	private void ASTOutput() 
 	{		
@@ -271,7 +276,20 @@ or:
 					
 			StringBuilder temp = new StringBuilder();
 						
-			temp.append( "if $"  + processASTNodes( stmt.getConditionExpression() ) +  "$ "  );	
+			temp.append( "if $" );
+			
+			boolean isImpCond = isImpCondition( stmt.getConditionExpression() );
+			
+			if( isImpCond )
+			{
+				temp.append( processASTNodes( stmt.getConditionExpression() ) +  "$ "  );				
+			}
+			else
+			{
+				temp.append( "CIF(I)$ "  );
+				//need to extract this differently
+			}
+			
 			temp.append( "then " + processASTNodes( stmt.getThenClause() ) + " " );
 			temp.append( "else " + processASTNodes( stmt.getElseClause() ) + " " );
 			
@@ -283,7 +301,20 @@ or:
 			
 			StringBuilder temp = new StringBuilder();
 						
-			temp.append( "while $"  + processASTNodes( stmt.getCondition() ) +  "$ "  );				
+			temp.append( "while $" );
+			
+			boolean isImpCond = isImpCondition( stmt.getCondition() );
+			
+			if( isImpCond )
+			{
+				temp.append( processASTNodes( stmt.getCondition() ) +  "$ "  );				
+			}
+			else
+			{
+				temp.append( "CWhile(I)$ "  );
+				//need to extract this differently
+			}
+			
 			temp.append( " ( " + processASTNodes( stmt.getBody() ) + " ) " );
 			
 			return temp.toString();		
@@ -444,8 +475,21 @@ or:
 			IASTIfStatement stmt = (IASTIfStatement)node;
 					
 			StringBuilder temp = new StringBuilder();
-						
-			temp.append( "if $"  + printFuncNodes( stmt.getConditionExpression(), indent) +  "$ "  );	
+												
+			temp.append( "if $" );
+			
+			boolean isImpCond = isImpCondition( stmt.getConditionExpression() );
+			
+			if( isImpCond )
+			{
+				temp.append( printFuncNodes( stmt.getConditionExpression(), 0 ) +  "$ "  );				
+			}
+			else
+			{
+				temp.append( "CIF(I)$ "  );
+				//need to extract this differently
+			}			
+			
 			temp.append( "then " + printFuncNodes( stmt.getThenClause(), indent ) + " " );
 			temp.append( indentTabGet( indent ) + "else " + printFuncNodes( stmt.getElseClause(), indent ) + " " );
 			
@@ -455,9 +499,22 @@ or:
 		{
 			IASTWhileStatement stmt = (IASTWhileStatement)node;
 			
-			StringBuilder temp = new StringBuilder();
-						
-			temp.append( "while $"  + printFuncNodes( stmt.getCondition(), indent ) +  "$ "  );				
+			StringBuilder temp = new StringBuilder();									
+			
+			temp.append( "while $" );
+			
+			boolean isImpCond = isImpCondition( stmt.getCondition() );
+			
+			if( isImpCond )
+			{
+				temp.append(  printFuncNodes( stmt.getCondition(), 0 ) +  "$ "  );				
+			}
+			else
+			{
+				temp.append( "CWhile(I)$ "  );
+				//need to extract this differently
+			}			
+			
 			temp.append( printFuncNodes( stmt.getBody(), indent ) 
 				+ indentTabGet( indent ) + "" );
 			
@@ -574,7 +631,7 @@ or:
 		return result;
 	}
 	
-	public boolean isImpBooleanCondition( IASTNode node )
+	public boolean isImpCondition( IASTNode node )
 	{
 		boolean res = true;
 		
@@ -591,13 +648,21 @@ or:
 				res = false;
 			}
 		}
+		else if( node instanceof IASTIdExpression )
+		{
+			String nodeName = ((IASTIdExpression)node).getName().toString();
+			
+			res = isPointer( nodeName );			
+			System.out.println( "impBooleanConditionGet: " + nodeName );
+			// need to check other stuff like constants and such
+		}		
 		else
 		{
 			IASTNode [] arr = node.getChildren();
 						
 			for( int i = 0 ; i < arr.length && res ; ++i )
 			{			
-				res = isImpBooleanCondition( arr[i] );				
+				res = isImpCondition( arr[i] );				
 			}
 		}		
 
