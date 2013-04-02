@@ -9,12 +9,14 @@ import org.eclipse.cdt.core.dom.ast.ExpansionOverlapsBoundaryException;
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
 import org.eclipse.cdt.core.dom.ast.IASTCompoundStatement;
 import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTDeclarationStatement;
 import org.eclipse.cdt.core.dom.ast.IASTFieldReference;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
 import org.eclipse.cdt.core.dom.ast.IASTIdExpression;
 import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
 import org.eclipse.cdt.core.dom.ast.IASTName;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
+import org.eclipse.cdt.core.dom.ast.IASTParameterDeclaration;
 import org.eclipse.cdt.core.dom.ast.IASTStatement;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 import org.eclipse.cdt.core.dom.ast.IASTWhileStatement;
@@ -36,7 +38,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	HashSet <String>        nextFields;
 	HashSet <String>        symbolTablePointers;
 	
-	public ASTBuilder( String filename, String [] funcs, String [] nextFlds ) 
+	public ASTBuilder( String filename, String [] funcs, String [] nextFlds, String [] ptrs ) 
 	{
 		super();
 		
@@ -44,22 +46,23 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		this.funcs                =  funcs;
 		this.output               =  new StringBuilder();
 		
-		initPointers();
+		initPointers( ptrs );
 		initNextFields( nextFlds );
 		ASTinit();	
 		ASTOutput();
 	}
 	
-	private void initPointers()
+	private void initPointers( String [] ptrs )
 	{
 		this.symbolTablePointers  =  new HashSet<String>();
 		
 		symbolTablePointers.add( "NULL" );
 		
-		symbolTablePointers.add( "t" );
-		symbolTablePointers.add( "j" );
-		symbolTablePointers.add( "i" );
-		//need to replace later with relevant code
+		for( String p : ptrs )
+		{
+			symbolTablePointers.add( p );
+		}
+		//TODO to replace later with relevant code
 		/*
 		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTParameterDeclaration ]
 		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
@@ -76,8 +79,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
 		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
 		[ j org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-
-		 */			
+		*/			
 	}
 	
 	private void initNextFields( String[] nextFlds ) 
@@ -93,7 +95,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return nextFields.contains( fldName );
 	}
 	
-	private boolean isPointer( String varName )
+	private boolean isImpCompatiblePointer( String varName )
 	{
 		return symbolTablePointers.contains( varName );
 	}	
@@ -114,14 +116,12 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			IASTTranslationUnit tu =  
 			this.getASTTranslationUnit( fc, 
 					new ScannerInfo( 
-							new HashMap<String, String>(),new String[0]  )/*scanInfo*/, 
-					IncludeFileContentProvider.getEmptyFilesProvider()/*fileCreator*/, 
-					null/*index*/, 
-					0, 
-					new DefaultLogService()/*logger*/ );
-			
-			//System.out.println( tu.getDeclarations().length );
-			
+						new HashMap<String, String>(),new String[0]  )		/*scanInfo*/, 
+						IncludeFileContentProvider.getEmptyFilesProvider()	/*fileCreator*/, 
+						null												/*index*/, 
+						0, 
+						new DefaultLogService()								/*logger*/ );
+					
 			ASTVisitor visitor = new ASTVisitor() {
 				
 				@Override 
@@ -195,8 +195,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	}
 	
 	public void printASTNodes( String prefix, IASTNode node )
-	{
-		CASTBinaryExpression tomer;
+	{		
 					
 		try 
 		{
@@ -438,7 +437,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		//CASTPointer c;
 		
 		try {
-			System.out.println( "[ " + node.getSyntax().toString() + " " + node.getClass().getName() + " ]" );
+			System.out.println( "[ " + node.getChildren().length + " " + node.getSyntax().toString() + " " + node.getClass().getName() + " ]" );
 		} catch (ExpansionOverlapsBoundaryException e1) {
 			// TODO Auto-generated catch block
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
@@ -550,7 +549,21 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			return ( printFuncNodes( b.getOperand1(), 0 ) + opStr +
 					printFuncNodes( b.getOperand2(), 0 ) );		
 		}
-		if( node instanceof IASTCompoundStatement )
+		else if( node instanceof IASTParameterDeclaration )
+		{
+			return "# " + node.getRawSignature() + "\n" + indentTabGet( indent ) ;
+		}		
+		else if( node instanceof IASTDeclarationStatement )
+		{
+			return "# " + node.getRawSignature() + "\n" + indentTabGet( indent ) ;
+		}
+		/*
+		else if( node instanceof IASTFunctionDefinition )
+		{
+			return "";
+		}		
+		*/
+		else if( node instanceof IASTCompoundStatement )
 		{
 			IASTNode [] arr = node.getChildren();
 			
@@ -582,11 +595,11 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			{
 				try 
 				{
-					temp.append( "< " + node.getSyntax() +  " " + node.getClass().getName() + " SKIP>" );
+					temp.append( "#< " + node.getSyntax() +  " " + node.getClass().getName() + " SKIP>" + "\n" + indentTabGet( indent ) );
 				} 
 				catch (ExpansionOverlapsBoundaryException e) 
 				{
-					temp.append( "< " + " SKIP>" );					
+					temp.append( "#< " + " SKIP>"  + "\n" + indentTabGet( indent ) );					
 					e.printStackTrace();
 				}
 			}
@@ -652,8 +665,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{
 			String nodeName = ((IASTIdExpression)node).getName().toString();
 			
-			res = isPointer( nodeName );			
-			System.out.println( "impBooleanConditionGet: " + nodeName );
+			res = isImpCompatiblePointer( nodeName );			
+			//System.out.println( "impBooleanConditionGet: " + nodeName );
 			// need to check other stuff like constants and such
 		}		
 		else
@@ -672,14 +685,16 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	public static void main( String [] args )
 	{				
 		String [] interestingFuncs = { "my_find" };
-		String [] nextFields = { "next" };
+		String [] nextFields       = { "next" };
+		String [] ptrs             = { "t", "j", "i" };
 
 		
 		//ASTBuilder temp = new ASTBuilder( "/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/thttpd.c" );
 		ASTBuilder temp = new ASTBuilder( 
 				"/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/demo_linked_lists.c",
 				interestingFuncs,
-				nextFields );		
+				nextFields,
+				ptrs );		
 	}
 }
 
