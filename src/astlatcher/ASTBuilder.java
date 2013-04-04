@@ -10,6 +10,8 @@ import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
 import org.eclipse.cdt.core.dom.ast.IASTCompoundStatement;
 import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
 import org.eclipse.cdt.core.dom.ast.IASTDeclarationStatement;
+import org.eclipse.cdt.core.dom.ast.IASTExpression;
+import org.eclipse.cdt.core.dom.ast.IASTExpressionStatement;
 import org.eclipse.cdt.core.dom.ast.IASTFieldReference;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
 import org.eclipse.cdt.core.dom.ast.IASTIdExpression;
@@ -17,6 +19,7 @@ import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
 import org.eclipse.cdt.core.dom.ast.IASTName;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IASTParameterDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTReturnStatement;
 import org.eclipse.cdt.core.dom.ast.IASTStatement;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 import org.eclipse.cdt.core.dom.ast.IASTWhileStatement;
@@ -32,11 +35,12 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
-	private String         pathToFile;
-	private String []      funcs;
-	private StringBuilder  output;
-	HashSet <String>        nextFields;
-	HashSet <String>        symbolTablePointers;
+	private String            pathToFile;
+	private String []         funcs;
+	private StringBuilder     output;
+	private VariableGenerator varGen;
+	HashSet <String>          nextFields;
+	HashSet <String>          symbolTablePointers;
 	
 	public ASTBuilder( String filename, String [] funcs, String [] nextFlds, String [] ptrs ) 
 	{
@@ -45,11 +49,14 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		this.pathToFile           =  filename;
 		this.funcs                =  funcs;
 		this.output               =  new StringBuilder();
+		this.varGen               =  new VariableGenerator();
 		
 		initPointers( ptrs );
 		initNextFields( nextFlds );
 		ASTinit();	
 		ASTOutput();
+		
+		//CASTSimpleDeclSpecifier
 	}
 	
 	private void initPointers( String [] ptrs )
@@ -216,32 +223,13 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
 		for( int i = 0 ; i < arr.length ; ++i )
 		{
-			//System.out.println( prefix + "Node no. " + i + ":\n" ) ;
-			//System.out.println( prefix + func.getRawSignature()) ;
-			
-			//if( arr[i] instanceof IASTStatement )
-			//{
-				printASTNodes( prefix + " ", arr[i]  );
-			//}
-			//else
-			//{
-			//	System.out.println( prefix + "<SKIP>" );
-			//}
+			printASTNodes( prefix + " ", arr[i]  );
 		}
 	}
 	
 	public String processASTNodes( IASTNode node )
 	{
-		/*
-		try 
-		{
-			System.out.println( node.getFileLocation().getStartingLineNumber() + " " +   
-									node.getSyntax() + " " + node.getClass().getName() );
-		}
-		*/
-		
-		//CASTCompoundStatement c;
-		
+	
 		if( node instanceof IASTIdExpression )
 		{
 			return ((IASTIdExpression) node).getName().toString();
@@ -430,16 +418,152 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return result;
 	}
 	
+	private String impOperandGet( int op )
+	{
+		String opStr = "";
+		
+		switch( op )
+		{
+
+		case( IASTBinaryExpression.op_assign ):				
+			opStr = " := ";
+			break;
+		case( IASTBinaryExpression.op_notequals ):
+			opStr = " != ";
+			break;
+		case( IASTBinaryExpression.op_equals ):
+			opStr = " = ";
+			break;
+		case( IASTBinaryExpression.op_logicalAnd ):				
+			opStr = " & ";
+			break;				
+		default:
+			opStr = " ? ";					
+		}	
+		return opStr;
+	}
+	
+	
+	//CASTBinaryExpression c;
+	//CASTIdExpression c;
+
+	public String[] impConditionGet( IASTNode node )
+	{
+		String [] res         =  { "", "" }; //to add to parent statemtn prefix, "new statement";
+		StringBuilder prefix  =  new StringBuilder();
+		StringBuilder suffix  =  new StringBuilder();
+		
+		if( node instanceof IASTFieldReference )
+		{
+			String fldName = ( ( IASTFieldReference ) node).getFieldName().toString();
+			
+			if( ! isNextField( fldName ) )
+			{
+				IASTNode  parent   =  node.getParent();
+				String    varName  =  varGen.nextVarNameGet();
+				
+				//CASTDeclarationStatement dec = new CASTDeclarationStatement( varName );
+				
+				//CASTIdExpression var = new CASTIdExpression( varName );
+				//CASTSimpleDeclaration c;
+				//CASTDeclorator c;
+				
+							
+				
+				
+				/*
+				String fieldRef     =  visitStmt( ( IASTFieldReference )node, 0 );				
+				
+				String prefix       =  "int " + varName + 
+						               impOperandGet( IASTBinaryExpression.op_assign );
+						               
+						               				
+				prefix.append( )
+				*/
+			}
+		}
+		else if( node instanceof IASTIdExpression )
+		{
+			String nodeName = ((IASTIdExpression)node).getName().toString();
+			
+			//res				= isImpCompatiblePointer( nodeName );			
+		}		
+		else
+		{
+			IASTNode [] arr = node.getChildren();
+						
+			/*
+			for( int i = 0 ; i < arr.length && res ; ++i )
+			{			
+				res = isImpCondition( arr[i] );				
+			}
+			*/
+		}
+		
+		res = new String[] { prefix.toString(), suffix.toString() };
+
+		return res;
+	}
+	
+	
+	
+	private String[] impBinExpGet( IASTBinaryExpression node )
+	{
+		String [] res  =  { "newCreatedVars", "binOp" };		
+		int    op      =  node.getOperator();
+		
+		if( op != IASTBinaryExpression.op_assign )
+		{
+			IASTExpression l_op = node.getOperand1();
+			
+			IASTExpression r_op = node.getOperand2();
+		}
+		
+		return res;
+	}
+	
+	
+	private String impExpStmtGet( IASTExpressionStatement node )
+	{
+		String res = "";
+					
+		return res;
+	}
+	
+
+	
+	private String impExpGet( IASTNode node )
+	{
+		String res = "";
+		
+		StringBuilder temp = new StringBuilder();
+		
+		IASTNode [] arr = node.getChildren();
+		
+		for( int i = 0; i < arr.length; ++i )
+		{
+			IASTNode curr = arr[i];
+			
+		}
+					
+		res = temp.toString();
+		
+		return res;
+	}	
+
+	
 	
 	public String printFuncNodes( IASTNode node, int indent )
 	{
-		
 		//CASTPointer c;
+		//CASTExpressionStatement c;
 		
-		try {
+		try 
+		{
 			System.out.println( "[ " + node.getChildren().length + " " + node.getSyntax().toString() + " " + node.getClass().getName() + " ]" );
-		} catch (ExpansionOverlapsBoundaryException e1) {
-			// TODO Auto-generated catch block
+		} 
+		catch (ExpansionOverlapsBoundaryException e1) 
+		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
 		
@@ -450,49 +574,11 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		}
 		else if( node instanceof IASTFieldReference )
 		{
-			StringBuilder temp = new StringBuilder();
-			
-			String fldName = ((IASTFieldReference) node).getFieldName().toString();
-			
-			temp.append( printFuncNodes( ( (IASTFieldReference) node ).getFieldOwner() , 0 ) );
-			
-			temp.append( "." );
-			
-			if( isNextField( fldName ) )
-			{
-				temp.append( "n" );
-			}
-			else
-			{
-				temp.append( fldName );
-			}
-			
-			return indentTabGet( indent ) + temp.toString();
+			return visitStmt( ( IASTFieldReference )node, indent );
 		}
 		else if( node instanceof IASTIfStatement )
 		{
-			IASTIfStatement stmt = (IASTIfStatement)node;
-					
-			StringBuilder temp = new StringBuilder();
-												
-			temp.append( "if $" );
-			
-			boolean isImpCond = isImpCondition( stmt.getConditionExpression() );
-			
-			if( isImpCond )
-			{
-				temp.append( printFuncNodes( stmt.getConditionExpression(), 0 ) +  "$ "  );				
-			}
-			else
-			{
-				temp.append( "CIF(I)$ "  );
-				//need to extract this differently
-			}			
-			
-			temp.append( "then " + printFuncNodes( stmt.getThenClause(), indent ) + " " );
-			temp.append( indentTabGet( indent ) + "else " + printFuncNodes( stmt.getElseClause(), indent ) + " " );
-			
-			return temp.toString();
+			return visitStmt( ( IASTIfStatement )node, indent );
 		}		
 		else if( node instanceof IASTWhileStatement )
 		{
@@ -524,27 +610,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			IASTBinaryExpression  b  = ( IASTBinaryExpression )node;			
 			int                  op  = b.getOperator();
-			String opStr             = "";			
-			
-			switch( op )
-			{
-
-			case( IASTBinaryExpression.op_assign ):				
-				opStr = " := ";
-				break;
-			case( IASTBinaryExpression.op_notequals ):
-				opStr = " != ";
-				break;
-			case( IASTBinaryExpression.op_equals ):
-				opStr = " == ";
-				break;
-			case( IASTBinaryExpression.op_logicalAnd ):				
-				opStr = " && ";
-				break;
-				
-			default:
-				opStr = " ? ";					
-			}
+			String opStr             = impOperandGet( op );
 			
 			return ( printFuncNodes( b.getOperand1(), 0 ) + opStr +
 					printFuncNodes( b.getOperand2(), 0 ) );		
@@ -557,6 +623,10 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{
 			return "# " + node.getRawSignature() + "\n" + indentTabGet( indent ) ;
 		}
+		else if( node instanceof IASTReturnStatement )
+		{
+			return "# " + node.getRawSignature() + "\n" + indentTabGet( indent ) ;						
+		}		
 		/*
 		else if( node instanceof IASTFunctionDefinition )
 		{
@@ -585,6 +655,19 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			return temp.toString();
 		}
+		/*
+		else if( node instanceof IASTExpressionStatement )
+		{
+			IASTNode [] arr = node.getChildren();
+			
+			//visit all children till we find a illegit imp field reference
+			//create a new var for field x
+			//replace field expression statement with assignment of type
+			 * Every op except assign: h.data == key --> int x01 = h.data; and relpace h.data with x01;
+			 * With assign: leve the same
+			
+		}				
+		*/
 		else
 		{
 			IASTNode [] arr = node.getChildren();
@@ -615,10 +698,68 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			return temp.toString();
 		}
 	}
+
+	public String visitStmt( IASTBinaryExpression b, int indent )
+	{				
+		int         op     =  b.getOperator();
+		String      opStr  =  impOperandGet( op );
 	
+		return ( printFuncNodes( b.getOperand1(), 0 ) + opStr +
+				printFuncNodes( b.getOperand2(), 0 ) );
+	}
 	
-	public void analyazeIfStmt()
+	public String visitStmt( IASTFieldReference node, int indent )
 	{
+		StringBuilder temp =  new StringBuilder();		
+		String fldName     =  node.getFieldName().toString();
+		
+		temp.append( printFuncNodes( ( (IASTFieldReference) node ).getFieldOwner() , 0 ) );
+		
+		temp.append( "." );
+		
+		if( isNextField( fldName ) )
+		{
+			temp.append( "n" );
+		}
+		else
+		{
+			temp.append( fldName );
+		}
+		
+		temp.append( indentTabGet( indent ) );
+		
+		return temp.toString();		
+	}
+	
+	
+	public String visitStmt( IASTIfStatement stmt, int indent )
+	{
+		
+		StringBuilder temp       =  new StringBuilder();															
+		boolean       isImpCond  =  isImpCondition( stmt.getConditionExpression() );
+		
+		if( isImpCond )
+		{
+			
+			temp.append( "if $" );
+			temp.append( printFuncNodes( stmt.getConditionExpression(), 0 ) +  "$ "  );				
+		}
+		else
+		{
+			
+			
+			temp.append( "#$" + printFuncNodes( stmt.getConditionExpression(), 0 ) +  "$\n" +indentTabGet(indent) );
+			
+			temp.append( "if $" );
+			temp.append( "CIF(I)$ "  );
+			//need to extract this differently
+		}			
+		
+		temp.append( "then " + printFuncNodes( stmt.getThenClause(), indent ) + " " );
+		temp.append( indentTabGet( indent ) + "else " + printFuncNodes( stmt.getElseClause(), indent ) + " " );
+		
+		return temp.toString();
+				
 		//returns boolean condition that contains only linked list nodes or referenced 'next' fields
 		//does not contain referenced data fields or data comparisions
 		
@@ -649,10 +790,9 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		boolean res = true;
 		
 		//CASTIdExpression c;
-		//need to check if CASTIdExpression is of a recognized Pointer or null field
+		//need to check if CASTIdExpression is of a recognized Pointer or null field		
 		
-		
-		if( node instanceof IASTFieldReference )
+		if( node != null && node instanceof IASTFieldReference )
 		{
 			String fldName = ((IASTFieldReference) node).getFieldName().toString();
 			
@@ -691,7 +831,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
 		//ASTBuilder temp = new ASTBuilder( "/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/thttpd.c" );
 		ASTBuilder temp = new ASTBuilder( 
-				"/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/demo_linked_lists.c",
+				"/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/stupid.c",
 				interestingFuncs,
 				nextFields,
 				ptrs );		
