@@ -35,12 +35,13 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
-	private String            pathToFile;
-	private String []         funcs;
-	private StringBuilder     output;
-	private VariableGenerator varGen;
-	HashSet <String>          nextFields;
-	HashSet <String>          symbolTablePointers;
+	private String                      pathToFile;
+	private String []                   funcs;
+	private StringBuilder               output;
+	private VariableGenerator           varGen;
+	private static HashSet <String>     nextFields;
+	private static HashSet <String>     symbolTablePointers;
+	private static String               CNullConstant          = "NULL";    
 	
 	public ASTBuilder( String filename, String [] funcs, String [] nextFlds, String [] ptrs ) 
 	{
@@ -56,14 +57,14 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		ASTinit();	
 		ASTOutput();
 		
-		//CASTSimpleDeclSpecifier
 	}
+	
 	
 	private void initPointers( String [] ptrs )
 	{
-		this.symbolTablePointers  =  new HashSet<String>();
+		symbolTablePointers  =  new HashSet<String>();
 		
-		symbolTablePointers.add( "NULL" );
+		symbolTablePointers.add( CNullConstant );
 		
 		for( String p : ptrs )
 		{
@@ -91,32 +92,32 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	
 	private void initNextFields( String[] nextFlds ) 
 	{		
-		this.nextFields           =  new HashSet<String>();
+		nextFields           =  new HashSet<String>();
 
 		for( String s : nextFlds )
 			nextFields.add( s );
 	}
 	
-	private boolean isNextField( String fldName )
+	public static boolean isNextField( String fldName )
 	{
 		return nextFields.contains( fldName );
 	}
 	
-	private boolean isImpCompatiblePointer( String varName )
+	private static boolean isImpCompatiblePointer( String varName )
 	{
 		return symbolTablePointers.contains( varName );
 	}	
 
 	private void ASTOutput() 
 	{		
-		System.out.println( output.toString() + "\n" );		
+		//System.out.println( output.toString() + "\n" );		
 	}
 	
 	private void ASTinit()
 	{
 		FileContent fc = FileContent.createForExternalFileLocation( pathToFile );
 		
-		System.out.println( fc.getFileLocation() );
+		//System.out.println( fc.getFileLocation() );
 
 		try 
 		{
@@ -138,7 +139,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 					
 					//CFunction c;
 					
-					System.out.print( b.getName() +" " + b.getClass().getName()  +"\n" );
+					//System.out.print( b.getName() +" " + b.getClass().getName()  +"\n" );
 					
 					IType type = ( b instanceof IFunction ) ? 
 									( (IFunction) b).getType() : null;
@@ -173,6 +174,13 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 							//output.append( processASTNodes( dec ) + "\n" );
 							output.append( printFuncNodes( dec, 0 ) + "\n" );
 							
+							
+							System.out.println( "---------------------");
+							
+							IMPcompoundStmtNode  par      =  new IMPcompoundStmtNode( null );
+							IMPastNode           check    =  IMPParseStmt( dec, par );
+							
+							visitIMPastNode( par );
 							//System.out.print( dec.getFileLocation().getStartingLineNumber() + ":\t" + dec.getRawSignature() + "\n");							
 						}
 					}				
@@ -189,6 +197,17 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{
 			e.printStackTrace();
 		}	
+	}
+	
+	
+	public static void visitIMPastNode( IMPastNode node )
+	{
+		System.out.println( node );
+		
+		/*
+		for( IMPastNode n : node.nodeChildrenGet(node) )
+			visitIMPastNode( n );
+		*/
 	}
 	
 	private boolean isFuncIntersting( String name )
@@ -418,7 +437,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return result;
 	}
 	
-	private String impOperandGet( int op )
+	public static String impOperandGet( int op )
 	{
 		String opStr = "";
 		
@@ -443,67 +462,21 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return opStr;
 	}
 	
-	
-	//CASTBinaryExpression c;
-	//CASTIdExpression c;
-
-	public String[] impConditionGet( IASTNode node )
+	public static String assStmtStrGet( String lhs, String rhs, int op )
 	{
-		String [] res         =  { "", "" }; //to add to parent statemtn prefix, "new statement";
-		StringBuilder prefix  =  new StringBuilder();
-		StringBuilder suffix  =  new StringBuilder();
+		String stmtStr= "";
 		
-		if( node instanceof IASTFieldReference )
+		if( rhs.equals( CNullConstant ) )
 		{
-			String fldName = ( ( IASTFieldReference ) node).getFieldName().toString();
-			
-			if( ! isNextField( fldName ) )
-			{
-				IASTNode  parent   =  node.getParent();
-				String    varName  =  varGen.nextVarNameGet();
-				
-				//CASTDeclarationStatement dec = new CASTDeclarationStatement( varName );
-				
-				//CASTIdExpression var = new CASTIdExpression( varName );
-				//CASTSimpleDeclaration c;
-				//CASTDeclorator c;
-				
-							
-				
-				
-				/*
-				String fieldRef     =  visitStmt( ( IASTFieldReference )node, 0 );				
-				
-				String prefix       =  "int " + varName + 
-						               impOperandGet( IASTBinaryExpression.op_assign );
-						               
-						               				
-				prefix.append( )
-				*/
-			}
+			stmtStr = "x:=null{'" + rhs + "'}";
 		}
-		else if( node instanceof IASTIdExpression )
-		{
-			String nodeName = ((IASTIdExpression)node).getName().toString();
-			
-			//res				= isImpCompatiblePointer( nodeName );			
-		}		
 		else
 		{
-			IASTNode [] arr = node.getChildren();
-						
-			/*
-			for( int i = 0 ; i < arr.length && res ; ++i )
-			{			
-				res = isImpCondition( arr[i] );				
-			}
-			*/
+			stmtStr = "x:=y{'" + rhs + "'}";			
 		}
-		
-		res = new String[] { prefix.toString(), suffix.toString() };
 
-		return res;
-	}
+		return stmtStr;
+	}	
 	
 	
 	
@@ -558,6 +531,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		//CASTPointer c;
 		//CASTExpressionStatement c;
 		
+		/*
 		try 
 		{
 			System.out.println( "[ " + node.getChildren().length + " " + node.getSyntax().toString() + " " + node.getClass().getName() + " ]" );
@@ -566,6 +540,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
+		*/
 		
 		if( node instanceof IASTIdExpression )
 		{
@@ -698,6 +673,129 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			return temp.toString();
 		}
 	}
+	
+	
+	public static IMPastNodeSimplify IMParseExpr( IASTNode node, IMPastNode parent )
+	{
+		IMPastNodeSimplify result = null;
+		
+		if( node instanceof IASTIdExpression )
+		{
+			IMPidNode n = new IMPidNode( parent );
+			n.initNode(node );
+			
+			result = n;							
+		}
+		else if( node instanceof IASTFieldReference )
+		{
+			IMPFieldRefNode n = new IMPFieldRefNode( parent );
+			n.initNode(node );
+			
+			result = n;							
+		}		
+		else if( node instanceof IASTBinaryExpression )
+		{
+			//we need to simplify the binary expression...
+			IMPexprNode n = new IMPexprNode( parent );
+			n.initNode(node );
+			
+			result = n;							
+		}
+		else 
+		{
+			System.out.println( "Not expected: " + node.getRawSignature() + " " + node.getClass().getName() );			
+		}
+
+		return result;
+	}
+	
+	
+	public static IMPastNode IMPParseStmt( IASTNode node, IMPastNode parent )
+	{
+		IMPastNode result = null;
+	
+		//debug
+		/*
+		try 
+		{
+			System.out.println( "[ " + node.getChildren().length + " " + 
+					node.getSyntax().toString() + " " + node.getClass().getName() + " ]" );
+		} 
+		catch( ExpansionOverlapsBoundaryException e1 ) 
+		{		
+			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
+		}
+		*/
+		//
+		
+		if( node instanceof IASTBinaryExpression )
+		{
+			IMPcmdNode n = new IMPcmdNode( parent );
+			n.initNode(node );
+			
+			result = n;							
+		}
+		else if( node instanceof IASTIfStatement )
+		{
+			IMPIfNode n = new IMPIfNode( parent );
+			n.initNode(node );
+			
+			result = n;				
+		}		
+		else if( node instanceof IASTWhileStatement )
+		{					
+			IMPWhileNode n = new IMPWhileNode( parent );
+			n.initNode(node );
+			
+			result = n;				
+		}		
+		else if( node instanceof IASTBinaryExpression )
+		{			
+			IMPcmdNode n = new IMPcmdNode( parent );
+			n.initNode(node );
+			
+			result = n;			
+		}
+		else if( node instanceof IASTReturnStatement      ||
+				 node instanceof IASTDeclarationStatement ||
+				 node instanceof IASTParameterDeclaration )
+		{				
+			IMPCommentNode n = new IMPCommentNode( parent );
+			n.initNode(node );
+			
+			result = n;			
+		}
+		else if( node instanceof IASTCompoundStatement )
+		{
+			IMPcompoundStmtNode n = new IMPcompoundStmtNode( parent );
+			n.initNode(node );
+			
+			result = n;						
+		}
+		else// could be node instanceof IASTCompoundStatement
+		{	
+			IASTNode [] arr = node.getChildren();
+			
+			if( arr.length == 0)
+			{
+				//??
+			}
+						
+			for( int i = 0 ; i < arr.length ; ++i )
+			{			
+				IMPastNode child = IMPParseStmt( arr[i] , parent );
+				
+				if( child != null )
+				{
+					parent.nodeChildrenAppend( child );
+				}
+			}			
+		}
+		
+		return result;
+	}
+	
+	
 
 	public String visitStmt( IASTBinaryExpression b, int indent )
 	{				
@@ -785,7 +883,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return result;
 	}
 	
-	public boolean isImpCondition( IASTNode node )
+	public static boolean isImpCondition( IASTNode node )
 	{
 		boolean res = true;
 		
