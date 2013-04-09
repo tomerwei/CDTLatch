@@ -23,8 +23,14 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		IASTFieldReference stmt =  ( IASTFieldReference )node;		
 		this.fieldName          =  stmt.getFieldName().toString();
 		this.owner              =  stmt.getFieldOwner().getRawSignature();				
-		this.name               =  owner + "." + fieldName;		            
+		this.name               =  "'" + owner + "." + fieldName + "'";		            
 		this.isNextField        =  ASTBuilder.isNextField( fieldName );	
+	}
+	
+	
+	public String ownerGet()
+	{
+		return "'" + owner + "'";
 	}
 	
 	

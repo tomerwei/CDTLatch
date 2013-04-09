@@ -41,7 +41,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	private VariableGenerator           varGen;
 	private static HashSet <String>     nextFields;
 	private static HashSet <String>     symbolTablePointers;
-	private static String               CNullConstant          = "NULL";    
+	public static String                CNullConstant          = "NULL";    
+	public static String                nextField              = "n";
 	
 	public ASTBuilder( String filename, String [] funcs, String [] nextFlds, String [] ptrs ) 
 	{
@@ -58,6 +59,18 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		ASTOutput();
 		
 	}
+
+	
+	public static String nextFieldStrGet()
+	{
+		return "'" + nextField + "'";
+	}
+	
+	public static String nullStrGet()
+	{
+		return "'" + CNullConstant + "'";
+	}
+	
 	
 	
 	private void initPointers( String [] ptrs )
@@ -460,25 +473,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			opStr = " ? ";					
 		}	
 		return opStr;
-	}
-	
-	public static String assStmtStrGet( String lhs, String rhs, int op )
-	{
-		String stmtStr= "";
-		
-		if( rhs.equals( CNullConstant ) )
-		{
-			stmtStr = "x:=null{'" + rhs + "'}";
-		}
-		else
-		{
-			stmtStr = "x:=y{'" + rhs + "'}";			
-		}
-
-		return stmtStr;
 	}	
-	
-	
 	
 	private String[] impBinExpGet( IASTBinaryExpression node )
 	{

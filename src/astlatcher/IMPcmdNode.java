@@ -62,10 +62,71 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		this.rhs                      =  rhs;
 	}	
 		
+	
+	/*
+	public static String cmdStmtStrGet( String lhs, String rhs, int op )
+	{
+		String stmtStr= "";
+		
+		if( rhs.equals( CNullConstant ) )
+		{
+			stmtStr = "x:=null{" + rhs + "}";
+		}
+		else
+		{
+			stmtStr = "x:=y{" + lhs + "," + rhs + "}";
+		}
+
+		return stmtStr;
+	}
+	*/
+	
+	
 	@Override
 	public String toString()
 	{
-		return lhs.toString() + ASTBuilder.impOperandGet( op ) + rhs.toString();
+		String  res       =  "";
+		String  x         =  "";
+		String  y         =  "";
+		String  lExp      =  "";
+		String  rExp      =  "";
+		String  midComma  = ",";
+		
+		if( lhs instanceof IMPFieldRefNode )
+		{
+			x       =  "x.n";
+			lExp    =  (( IMPFieldRefNode )lhs).ownerGet() + ",";
+			lExp    =  (( IMPFieldRefNode )lhs).ownerGet() + "," + ASTBuilder.nextFieldStrGet();
+		}
+		else
+		{
+			x       =  "x";
+			lExp    =  lhs.toString();
+		}
+
+		
+		if( rhs instanceof IMPFieldRefNode )
+		{
+			y       =  "y.n";
+			rExp    =  (( IMPFieldRefNode )rhs).ownerGet() + "," + ASTBuilder.nextFieldStrGet();
+		}
+		else if( rhs.toString().equals( ASTBuilder.nullStrGet() ) )
+		{
+			y        =  "null";			
+			midComma =  "";
+		}
+		else
+		{
+			y     =  "y";
+			rExp  =  rhs.toString();
+		}
+		
+		res = x + ":=" + y + "{" + lExp + midComma + rExp  + "}";
+		
+		//ASTBuilder.cmdStmtStrGet(  lhs.toString(), rhs.toString(), op );	
+		return res; 
+		//was previously:
+		//return lhs.toString() + ASTBuilder.impOperandGet( op ) + rhs.toString();
 	}
 
 }

@@ -16,12 +16,12 @@ public class IMPidNode extends IMPastNodeSimplify{
 	@Override
 	public void initNode( IASTNode node ) 
 	{
-		this.name = ((IASTIdExpression) node).getName().toString();		
+		this.name = "'" + ((IASTIdExpression) node).getName().toString() + "'";		
 	}
 	
 	public void initNode( String varName ) 
 	{
-		this.name = varName;	
+		this.name = "'" + varName + "'";	
 	}	
 	
 	
