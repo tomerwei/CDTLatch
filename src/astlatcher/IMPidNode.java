@@ -42,5 +42,10 @@ public class IMPidNode extends IMPastNodeSimplify{
 	{
 		// TODO Auto-generated method stub	
 	}
+	
+	public String prettyPrint( int indent ) {
+		
+		return toString();				
+	}	
 
 }

@@ -177,6 +177,9 @@ public class IMPexprNode extends IMPastNodeSimplify
 		}		
 	}
 	
-
+	public String prettyPrint( int indent ) {
+		
+		return toString();				
+	}
 }
 

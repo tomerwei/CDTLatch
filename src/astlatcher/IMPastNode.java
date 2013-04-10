@@ -31,4 +31,7 @@ public interface IMPastNode {
 	 */	
 	public void nodeChildrenAppend( IMPastNode node );
 
+	
+	
+	public String prettyPrint( int indent );
 }

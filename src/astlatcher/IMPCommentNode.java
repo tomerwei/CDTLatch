@@ -30,5 +30,8 @@ public class IMPCommentNode extends AbstractIMPastNode {
 		return comment;		
 	}
 	
-	
+	public String prettyPrint( int indent ) {
+		
+		return ASTBuilder.indentTabGet( indent ) + toString() + "\n";				
+	}
 }

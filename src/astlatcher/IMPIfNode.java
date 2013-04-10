@@ -136,5 +136,28 @@ public class IMPIfNode extends AbstractIMPastNode {
 	{
 		System.out.println( "Error: should not append to 'if' node " + node.toString() );
 	}
+	
+	private String prettyPrintIf( int indent ) {
+		
+		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
+				"if (" + boolCondition.toString() + ") then\n" );			
+		
+		res.append( thenBody.prettyPrint( indent  ) );
+						
+		res.append(  ASTBuilder.indentTabGet( indent ) + "else\n" );
+						
+		res.append( elseBody.prettyPrint( indent ) );			
+		
+		String result = res.toString();
+						
+		return result;				
+	}	
+	
+	
+	public String prettyPrint( int indent ) {
+		
+		return prettyPrintIf( indent ) + "";				
+	}	
+
 
 }

@@ -57,5 +57,30 @@ public class IMPcompoundStmtNode extends AbstractIMPastNode {
 						
 		return result;
 	}
+	
+	public String prettyPrintCompoundChildren( int indent ) {
+		
+		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + "{\n" );
+		
+		for( IMPastNode child : this.nodeChildrenGet( this ) )
+		{
+			String childStr = child.toString();
+			
+			if( childStr.length() > 0 )				
+			{
+				res.append( child.prettyPrint( indent + 1 ) );
+			}
+		}
+		
+		String result = res.toString() + ASTBuilder.indentTabGet( indent ) +  "}";
+						
+		return result;				
+	}
+	
+	
 
+	public String prettyPrint( int indent ) {
+		
+		return prettyPrintCompoundChildren( indent ) + "\n";				
+	}
 }

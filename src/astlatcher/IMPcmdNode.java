@@ -132,4 +132,9 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		//return lhs.toString() + ASTBuilder.impOperandGet( op ) + rhs.toString();
 	}
 
+	public String prettyPrint( int indent ) {
+		
+		return ASTBuilder.indentTabGet( indent ) + toString() + "\n";				
+	}
+
 }

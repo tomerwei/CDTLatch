@@ -189,6 +189,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 							IMPastNode           check    =  IMPParseStmt( dec, par );
 							
 							visitIMPastNode( par );
+							
+							System.out.println( par.prettyPrint( 0 ) );
 							//System.out.print( dec.getFileLocation().getStartingLineNumber() + ":\t" + dec.getRawSignature() + "\n");							
 						}
 					}				
@@ -425,7 +427,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		}
 	}
 	
-	private String indentTabGet( int indent )
+	public static String indentTabGet( int indent )
 	{
 		String result = "";
 		
@@ -437,7 +439,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			temp.append("");
 		
 			for( int i = 0 ; i < indent ; ++i )
-				temp.append("\t");
+				temp.append("  ");
 		
 			result = temp.toString();
 		}
