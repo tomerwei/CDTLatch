@@ -16,19 +16,19 @@ public class IMPidNode extends IMPastNodeSimplify{
 	@Override
 	public void initNode( IASTNode node ) 
 	{				
-		this.name = "'" + ( (IASTIdExpression)node ).getName().toString() + "'";		
+		this.name = ( (IASTIdExpression)node ).getName().toString() ;		
 	}
 	
 	public void initNode( String varName ) 
 	{
-		this.name = "'" + varName + "'";
+		this.name = varName;
 	}	
 	
 	
 	@Override 
 	public String toString() 
 	{
-		return name;
+		return "'" + name  + "'";
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class IMPidNode extends IMPastNodeSimplify{
 	
 	public String prettyPrint( int indent ) {
 		
-		return toString();				
+		return name;			
 	}	
 
 }

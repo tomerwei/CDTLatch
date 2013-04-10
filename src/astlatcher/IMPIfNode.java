@@ -140,7 +140,7 @@ public class IMPIfNode extends AbstractIMPastNode {
 	private String prettyPrintIf( int indent ) {
 		
 		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
-				"if (" + boolCondition.toString() + ") then\n" );			
+				"if $" + boolCondition.toString() + "$ then\n" );			
 		
 		res.append( thenBody.prettyPrint( indent  ) );
 						
@@ -156,7 +156,7 @@ public class IMPIfNode extends AbstractIMPastNode {
 	
 	public String prettyPrint( int indent ) {
 		
-		return prettyPrintIf( indent ) + "";				
+		return prettyPrintIf( indent );				
 	}	
 
 

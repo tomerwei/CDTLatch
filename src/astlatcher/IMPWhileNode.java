@@ -65,7 +65,7 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	private String prettyPrintWhille( int indent ) {
 		
 		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
-				"while (" + boolCondition.toString() + ")\n" );
+				"while $" + boolCondition.toString() + "$\n" );
 		
 		res.append( loopBody.prettyPrint( indent  ) );
 		
@@ -77,6 +77,6 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	
 	public String prettyPrint( int indent ) {
 		
-		return prettyPrintWhille( indent ) + "";				
+		return prettyPrintWhille( indent ) ;				
 	}	
 }

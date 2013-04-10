@@ -69,8 +69,9 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		
 	}
 
-	public String prettyPrint( int indent ) {
+	public String prettyPrint( int indent ) 
+	{
 		
-		return ASTBuilder.indentTabGet( indent ) + toString() ;				
+		return owner + "." + fieldName; 				
 	}
 }
