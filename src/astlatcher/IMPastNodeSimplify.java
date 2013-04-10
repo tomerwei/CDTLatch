@@ -1,6 +1,5 @@
 package astlatcher;
 
-import java.util.List;
 
 public abstract class IMPastNodeSimplify extends AbstractIMPastNode{
 

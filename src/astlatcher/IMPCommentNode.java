@@ -21,13 +21,13 @@ public class IMPCommentNode extends AbstractIMPastNode {
 	@Override
 	public void initNode( IASTNode node )
 	{
-		this.comment = "# " + node.getRawSignature() + "";		
+		this.comment = "#{" + node.getRawSignature() + "}";		
 	}
 	
 	@Override
 	public String toString()
 	{
-		return "";		
+		return comment;		
 	}
 	
 	

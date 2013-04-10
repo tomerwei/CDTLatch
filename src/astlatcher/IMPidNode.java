@@ -7,7 +7,7 @@ public class IMPidNode extends IMPastNodeSimplify{
 
 	String name;
 	
-	public IMPidNode( IMPastNode parent) 
+	public IMPidNode( IMPastNode parent ) 
 	{
 		super(parent);
 		// TODO Auto-generated constructor stub
@@ -15,13 +15,13 @@ public class IMPidNode extends IMPastNodeSimplify{
 
 	@Override
 	public void initNode( IASTNode node ) 
-	{
-		this.name = "'" + ((IASTIdExpression) node).getName().toString() + "'";		
+	{				
+		this.name = "'" + ( (IASTIdExpression)node ).getName().toString() + "'";		
 	}
 	
 	public void initNode( String varName ) 
 	{
-		this.name = "'" + varName + "'";	
+		this.name = "'" + varName + "'";
 	}	
 	
 	
@@ -32,15 +32,15 @@ public class IMPidNode extends IMPastNodeSimplify{
 	}
 
 	@Override
-	public boolean isSimple() {
-
+	public boolean isSimple() 
+	{
 		return true;
 	}
 
 	@Override
-	public void simplify(IMPastNode exprTopParent) {
-		// TODO Auto-generated method stub
-		
+	public void simplify( IMPastNode exprTopParent ) 
+	{
+		// TODO Auto-generated method stub	
 	}
 
 }

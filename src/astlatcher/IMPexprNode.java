@@ -50,6 +50,7 @@ public class IMPexprNode extends IMPastNodeSimplify
 	@Override
 	public String toString()
 	{
+		//CASTLiteralExpression
 		return "(" + lhs.toString() + ASTBuilder.impOperandGet( op ) + rhs.toString() + ")";				
 	}
 
@@ -96,50 +97,82 @@ public class IMPexprNode extends IMPastNodeSimplify
 	}
 	
 	
+	private void topParentForAppend( IMPastNode exprTopParent, IMPcmdNode assStmt )
+	{
+		IMPastNode  grandparent  =  exprTopParent.nodeParentGet();
+		
+		//TODO deal with case in top node is IF stmt		
+		if( exprTopParent instanceof IMPWhileNode )
+		{
+			exprTopParent.nodeChildrenAppend( assStmt );
+		}
+		/*
+		else if( exprTopParent instanceof IMPIfNode )
+		{
+			//do something different?
+			
+		}
+		*/
+		
+		grandparent.nodeChildrenAppend( assStmt );
+	}
+	
+	
+	private void 
+	simplifyAtomicExprDo( IMPastNode exprTopParent, IMPFieldRefNode field, boolean isLeft )
+	{
+		IMPcmdNode  assStmt  = assStmtForNonNextFieldCreate( exprTopParent, field , isLeft );
+		
+		//exprTopParent.nodeParentGet().nodeChildrenAppend( assStmt );
+		topParentForAppend( exprTopParent, assStmt );
+				
+		if( isLeft )
+		{
+			IMPastNodeSimplify node   = assStmt.leftNodeGet();
+			
+			node.nodeParentSet( this );
+			this.leftNodeSet( node );							
+		}
+		else
+		{
+			IMPastNodeSimplify node   = assStmt.rightNodeGet();
+			
+			node.nodeParentSet( this );
+			this.rightNodeSet( node );									
+		}		
+	}
+	
+	
 	public void simplifyAtomicExpr( IMPastNode exprTopParent ) 
 	{
 		if( lhs instanceof IMPFieldRefNode )
-		{			
-			IMPcmdNode         assStmt     = 
-					assStmtForNonNextFieldCreate( exprTopParent, lhs , true );
-			
-			exprTopParent.nodeParentGet().nodeChildrenAppend( assStmt );
-			
-			IMPastNodeSimplify leftSide    = assStmt.leftNodeGet();
-			
-			leftSide.nodeParentSet( this );
-			this.leftNodeSet( leftSide );			
+		{
+			simplifyAtomicExprDo( exprTopParent, ( IMPFieldRefNode )lhs, true );			
 		}
 		
 		if( rhs instanceof IMPFieldRefNode )
-		{		
-			IMPcmdNode         assStmt     = 
-					assStmtForNonNextFieldCreate( exprTopParent, rhs , false );
-			
-			exprTopParent.nodeParentGet().nodeChildrenAppend( assStmt );
-			
-			IMPastNodeSimplify rightSide    = assStmt.rightNodeGet();
-			
-			rightSide.nodeParentSet( this );
-			this.rightNodeSet( rightSide );							
+		{			
+			simplifyAtomicExprDo( exprTopParent, ( IMPFieldRefNode )rhs, false );			
 		}			
 	}
 
 		
 	public void simplify( IMPastNode exprTopParent ) 
-	{					
+	{	
+		boolean isSimp = isSimple();
 		
-		if( this instanceof IMPexprNode && !isSimple()  )
+		if( this instanceof IMPexprNode && !isSimp  )
 		{
+			boolean isAtomic = isAtomicExprNode();
 			
-			if( isAtomicExprNode() )
+			if( isAtomic )
 			{
 				simplifyAtomicExpr( exprTopParent );
 			}
 			else
 			{
 				this.leftNodeGet().simplify( exprTopParent );
-				this.leftNodeGet().simplify( exprTopParent );
+				this.rightNodeGet().simplify( exprTopParent );
 			}
 		}		
 	}

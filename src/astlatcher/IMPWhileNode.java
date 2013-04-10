@@ -45,6 +45,11 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	
 	private void simplifyBoolCondition( ) 	
 	{	
+		
+		if( !boolCondition.isSimple() )
+		{
+			boolCondition.simplify( this );
+		}		
 		//System.out.println( "hello world " +  boolCondition.isSimple() );
 		//traverse lhs, rhs
 		//if they there is a non next field reference - create new variable

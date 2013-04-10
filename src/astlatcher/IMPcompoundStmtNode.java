@@ -12,26 +12,31 @@ public class IMPcompoundStmtNode extends AbstractIMPastNode {
 
 	
 	@Override
-	public void initNode(IASTNode node) 
+	public void initNode( IASTNode node ) 
 	{
 		
-		IASTNode [] arr = node.getChildren();
-		
-		if( arr.length == 0)
+		if( node != null )
 		{
-			//?? should not get here
-		}
-					
-		for( int i = 0 ; i < arr.length ; ++i )
-		{			
-			IMPastNode child = ASTBuilder.IMPParseStmt( arr[i] , this );
-			
-			if( child != null )
+		
+			IASTNode [] arr = node.getChildren();
+		
+			if( arr.length == 0 )
 			{
-				this.nodeChildrenAppend( child );
+			//	?? should not get here
 			}
-		}		
+					
+			for( int i = 0 ; i < arr.length ; ++i )
+			{			
+				IMPastNode child = ASTBuilder.IMPParseStmt( arr[i] , this );
+			
+				if( child != null )
+				{
+					this.nodeChildrenAppend( child );
+				}
+			}		
+		}
 	}
+
 	
 	public String toString()
 	{
@@ -50,8 +55,7 @@ public class IMPcompoundStmtNode extends AbstractIMPastNode {
 		/* removes last ',' char */
 		String result = res.toString().substring(0, res.length()-1 ) +  "}";
 						
-		return result ;
+		return result;
 	}
-	
 
 }

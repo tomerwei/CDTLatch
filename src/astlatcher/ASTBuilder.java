@@ -16,6 +16,7 @@ import org.eclipse.cdt.core.dom.ast.IASTFieldReference;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
 import org.eclipse.cdt.core.dom.ast.IASTIdExpression;
 import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
+import org.eclipse.cdt.core.dom.ast.IASTLiteralExpression;
 import org.eclipse.cdt.core.dom.ast.IASTName;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IASTParameterDeclaration;
@@ -61,18 +62,6 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	}
 
 	
-	public static String nextFieldStrGet()
-	{
-		return "'" + nextField + "'";
-	}
-	
-	public static String nullStrGet()
-	{
-		return "'" + CNullConstant + "'";
-	}
-	
-	
-	
 	private void initPointers( String [] ptrs )
 	{
 		symbolTablePointers  =  new HashSet<String>();
@@ -102,6 +91,12 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		[ j org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
 		*/			
 	}
+
+	public static String nullStrGet()
+	{
+		return "'" + CNullConstant + "'";
+	}	
+	
 	
 	private void initNextFields( String[] nextFlds ) 
 	{		
@@ -681,6 +676,13 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			result = n;							
 		}
+		else if( node instanceof IASTLiteralExpression )
+		{
+			IMPliteralNode n = new IMPliteralNode( parent );
+			n.initNode(node );
+			
+			result = n;					
+		}
 		else if( node instanceof IASTFieldReference )
 		{
 			IMPFieldRefNode n = new IMPFieldRefNode( parent );
@@ -710,7 +712,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		IMPastNode result = null;
 	
 		//debug
-		/*
+		
 		try 
 		{
 			System.out.println( "[ " + node.getChildren().length + " " + 
@@ -720,8 +722,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
-		*/
-		//
+		
+		
 		
 		if( node instanceof IASTBinaryExpression )
 		{

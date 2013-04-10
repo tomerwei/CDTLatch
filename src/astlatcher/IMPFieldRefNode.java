@@ -24,7 +24,13 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		this.fieldName          =  stmt.getFieldName().toString();
 		this.owner              =  stmt.getFieldOwner().getRawSignature();				
 		this.name               =  "'" + owner + "." + fieldName + "'";		            
-		this.isNextField        =  ASTBuilder.isNextField( fieldName );	
+		this.isNextField        =  ASTBuilder.isNextField( fieldName );
+				
+		if( isNextField )
+		{
+			this.fieldName      = ASTBuilder.nextField;
+		}		
+					
 	}
 	
 	
@@ -52,6 +58,12 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 	}
 
 
+	public String fieldNameGet()
+	{
+		return fieldName;
+	}
+	
+	
 	@Override
 	public void simplify(IMPastNode exprTopParent) {
 		
