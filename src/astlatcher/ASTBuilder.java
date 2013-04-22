@@ -2,6 +2,7 @@ package astlatcher;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.cdt.core.dom.ast.ASTTypeUtil;
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -13,6 +14,7 @@ import org.eclipse.cdt.core.dom.ast.IASTDeclarationStatement;
 import org.eclipse.cdt.core.dom.ast.IASTExpression;
 import org.eclipse.cdt.core.dom.ast.IASTExpressionStatement;
 import org.eclipse.cdt.core.dom.ast.IASTFieldReference;
+import org.eclipse.cdt.core.dom.ast.IASTFunctionCallExpression;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
 import org.eclipse.cdt.core.dom.ast.IASTIdExpression;
 import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
@@ -31,7 +33,6 @@ import org.eclipse.cdt.core.parser.DefaultLogService;
 import org.eclipse.cdt.core.parser.FileContent;
 import org.eclipse.cdt.core.parser.IncludeFileContentProvider;
 import org.eclipse.cdt.core.parser.ScannerInfo;
-import org.eclipse.cdt.internal.core.dom.parser.c.CASTBinaryExpression;
 import org.eclipse.core.runtime.CoreException;
 
 public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
@@ -42,8 +43,10 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	private VariableGenerator           varGen;
 	private static HashSet <String>     nextFields;
 	private static HashSet <String>     symbolTablePointers;
+	private static HashMap <String, IASTFunctionDefinition > funcDecs;
 	public static String                CNullConstant          = "NULL";    
-	public static String                nextField              = "n";
+	public static String                nextField              = "n";	
+	
 	
 	public ASTBuilder( String filename, String [] funcs, String [] nextFlds, String [] ptrs ) 
 	{
@@ -56,46 +59,61 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
 		initPointers( ptrs );
 		initNextFields( nextFlds );
-		ASTinit();	
-		ASTOutput();
-		
+		ASTinit();
+		interestingFuncsProcess();
+		ASTOutput();		
 	}
-
+	
 	
 	private void initPointers( String [] ptrs )
 	{
-		symbolTablePointers  =  new HashSet<String>();
+		symbolTablePointers  =  new HashSet<String>();	
+		funcDecs             =  new HashMap <String, IASTFunctionDefinition > ();
 		
 		symbolTablePointers.add( CNullConstant );
 		
 		for( String p : ptrs )
 		{
-			symbolTablePointers.add( p );
+			symbolTablePointers.add( p );			
 		}
-		//TODO to replace later with relevant code
-		/*
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTParameterDeclaration ]
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-		[ * 	org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
-		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
-		[ h org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-
-		or:
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarationStatement ]
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTSimpleDeclaration ]
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTTypedefNameSpecifier ]
-		[ node org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTDeclarator ]
-		[ * org.eclipse.cdt.internal.core.dom.parser.c.CASTPointer ]
-		[ j org.eclipse.cdt.internal.core.dom.parser.c.CASTName ]
-		*/			
 	}
 
+	
 	public static String nullStrGet()
 	{
 		return "'" + CNullConstant + "'";
 	}	
+
+	private void interestingFuncsProcess()
+	{		
+		Set <String> funcs =  funcDecs.keySet();
+		
+		for( String funcName : funcs )
+		{
+			
+			boolean toProcess = isFuncIntersting( funcName );
+			
+			if( toProcess )
+			{
+				
+				IASTFunctionDefinition dec = funcDecs.get( funcName );
+				
+				output.append( "# " + funcName + "():\n");
+				output.append( printFuncNodes( dec, 0 ) + "\n" );
+				
+				IMPcompoundStmtNode  par      =  new IMPcompoundStmtNode( null );
+				IMPastNode           check    =  IMPParseStmt( dec, par );
+				
+				visitIMPastNode( par );				
+				System.out.println( par.prettyPrint( 0 ) );							
+			}
+		}
+	}
+	
+	public static IASTFunctionDefinition funcDeclerationGet( String name )
+	{
+		return funcDecs.get( name );
+	}
 	
 	
 	private void initNextFields( String[] nextFlds ) 
@@ -168,42 +186,20 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 				public int visit( IASTDeclaration dec ) 
 				{					
 					if( dec instanceof IASTFunctionDefinition )
-					{
+					{						
+						String funcName = ( (IASTFunctionDefinition) dec).getDeclarator().getName().toString();
 						
-						String funcName = ((IASTFunctionDefinition) dec).getDeclarator().getName().toString();
-						
-						boolean toProcess = isFuncIntersting( funcName );
-						
-						if( toProcess )
-						{
-							//System.out.println( ((IASTFunctionDefinition) dec).getDeclarator().getName() );
-							output.append( "# " + funcName + "():\n");
-							//printASTNodes( "", dec );							
-							//output.append( processASTNodes( dec ) + "\n" );
-							output.append( printFuncNodes( dec, 0 ) + "\n" );
-							
-							
-							System.out.println( "---------------------");
-							
-							IMPcompoundStmtNode  par      =  new IMPcompoundStmtNode( null );
-							IMPastNode           check    =  IMPParseStmt( dec, par );
-							
-							visitIMPastNode( par );
-							
-							System.out.println( par.prettyPrint( 0 ) );
-							//System.out.print( dec.getFileLocation().getStartingLineNumber() + ":\t" + dec.getRawSignature() + "\n");							
-						}
+						funcDecs.put( funcName ,(IASTFunctionDefinition) dec );						
 					}				
 					
 					return ASTVisitor.PROCESS_CONTINUE;
 				}
 			};
-
 			//visitor.shouldVisitNames = true;
 			visitor.shouldVisitDeclarations = true;
 			tu.accept( visitor );
 		} 
-		catch (CoreException e) 
+		catch( CoreException e ) 
 		{
 			e.printStackTrace();
 		}	
@@ -219,6 +215,17 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			visitIMPastNode( n );
 		*/
 	}
+	
+	
+	public static 
+	IASTFunctionDefinition funcDeclerationGet( IASTFunctionCallExpression funcCall )
+	{
+		IASTFunctionDefinition res = null;
+		
+		return null;			
+	}
+	
+	
 	
 	private boolean isFuncIntersting( String name )
 	{
@@ -472,52 +479,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		return opStr;
 	}	
 	
-	private String[] impBinExpGet( IASTBinaryExpression node )
-	{
-		String [] res  =  { "newCreatedVars", "binOp" };		
-		int    op      =  node.getOperator();
-		
-		if( op != IASTBinaryExpression.op_assign )
-		{
-			IASTExpression l_op = node.getOperand1();
-			
-			IASTExpression r_op = node.getOperand2();
-		}
-		
-		return res;
-	}
-	
-	
-	private String impExpStmtGet( IASTExpressionStatement node )
-	{
-		String res = "";
-					
-		return res;
-	}
-	
 
-	
-	private String impExpGet( IASTNode node )
-	{
-		String res = "";
-		
-		StringBuilder temp = new StringBuilder();
-		
-		IASTNode [] arr = node.getChildren();
-		
-		for( int i = 0; i < arr.length; ++i )
-		{
-			IASTNode curr = arr[i];
-			
-		}
-					
-		res = temp.toString();
-		
-		return res;
-	}	
-
-	
-	
 	public String printFuncNodes( IASTNode node, int indent )
 	{
 		//CASTPointer c;
@@ -700,6 +662,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			result = n;							
 		}
+		//IASTFunctionCallExpression
 		else 
 		{
 			System.out.println( "Not expected: " + node.getRawSignature() + " " + node.getClass().getName() );			
@@ -715,6 +678,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	
 		//debug
 		
+		/*
 		try 
 		{
 			System.out.println( "[ " + node.getChildren().length + " " + 
@@ -724,7 +688,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
-		
+		*/
 		
 		
 		if( node instanceof IASTBinaryExpression )

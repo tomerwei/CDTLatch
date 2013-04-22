@@ -16,6 +16,7 @@ public class IMPliteralNode extends IMPidNode {
 		this.name = "Literal{" + ((IASTLiteralExpression) node).getRawSignature() + "}";		
 	}
 	
+	
 	public void initNode( String varName ) 
 	{
 		this.name = varName;	

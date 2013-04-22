@@ -39,8 +39,6 @@ public class IMPIfNode extends AbstractIMPastNode {
 	private IMPcompoundStmtNode compoundStmtAdd( IASTStatement stmt )
 	{
 		IMPcompoundStmtNode res = new IMPcompoundStmtNode( this );
-		//res.initNode( stmt );
-		
 		
 		IMPastNode child = ASTBuilder.IMPParseStmt( stmt , res );
 		
@@ -63,7 +61,7 @@ public class IMPIfNode extends AbstractIMPastNode {
 		IASTStatement  thenStmt        =  stmt.getThenClause();		
 		boolean        isThenCompound  =  thenStmt instanceof IASTCompoundStatement;
 		
-		System.out.println( "thenStmt: "+ isThenCompound + " " + thenStmt.getClass().getName() );
+		//System.out.println( "thenStmt: "+ isThenCompound + " " + thenStmt.getClass().getName() );
 		
 		if( !isThenCompound )
 		{
@@ -78,7 +76,7 @@ public class IMPIfNode extends AbstractIMPastNode {
 		IASTStatement  elseStmt        =  stmt.getElseClause();
 		boolean        isElseCompound  =  elseStmt instanceof IASTCompoundStatement;
 		
-		System.out.println( "elseStmt: "+ isElseCompound + " " + elseStmt.getClass().getName() );
+		//System.out.println( "elseStmt: "+ isElseCompound + " " + elseStmt.getClass().getName() );
 		
 		if( !isElseCompound )
 		{
@@ -89,22 +87,6 @@ public class IMPIfNode extends AbstractIMPastNode {
 		{
 			this.elseBody   =  ASTBuilder.IMPParseStmt( elseStmt , this );
 		}
-		
-		/*
-		boolean isThenCompound =  thenBody instanceof IMPcompoundStmtNode;
-		
-		if( !isThenCompound )
-		{
-			this.thenBody = compoundStmtAdd( thenBody );
-		}
-		
-		boolean  isElseCompound = elseBody instanceof IMPcompoundStmtNode;
-		
-		if( !isElseCompound )
-		{
-			this.elseBody = compoundStmtAdd( elseBody );
-		}
-		*/
 		
 		simplifyBoolCondition();
 	}

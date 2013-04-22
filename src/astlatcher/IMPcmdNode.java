@@ -1,6 +1,8 @@
 package astlatcher;
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
+import org.eclipse.cdt.core.dom.ast.IASTExpression;
+import org.eclipse.cdt.core.dom.ast.IASTFunctionCallExpression;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 
 
@@ -15,6 +17,62 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		super(parent);
 	}
 
+	
+	
+	public IMPcmdNode 
+	funcReturnValueVarCreate( IMPastNode cmd, IASTFunctionCallExpression funcCall ) 			                         
+	{		
+		/*
+		IMPFieldRefNode  fieldToExtract  =  (IMPFieldRefNode) node;
+		String           varName         =  VariableGenerator.nextVarNameGet();
+		IMPastNode       cmdParent       =  exprTopParent.nodeParentGet();
+		IMPcmdNode       res             =  new IMPcmdNode( cmdParent.nodeParentGet() );	
+		IMPidNode        assignedVar     =  new IMPidNode( res );
+		
+		assignedVar.initNode( varName );
+		fieldToExtract.nodeParentSet( res );
+		res.initNode( assignedVar, fieldToExtract );
+		*/
+		
+		String      funcName       =  funcCall.getFunctionNameExpression().getRawSignature();		
+		IMPcmdNode  assFuncVarCmd  =  new IMPcmdNode( cmd.nodeParentGet() );	
+		IMPidNode   returnValueVar =  new IMPidNode( assFuncVarCmd );
+		String      funcVarName    =  VariableGenerator.nextVarNameGet( funcName );
+		
+		returnValueVar.initNode( funcVarName );
+			
+		IMPliteralNode  assignTypeDefaultValue  =   new IMPliteralNode( cmd );		
+		assignTypeDefaultValue.initNode( "null" );
+		
+		assFuncVarCmd.initNode( returnValueVar,assignTypeDefaultValue );						
+		return assFuncVarCmd;
+	}	
+	
+	private IMPastNodeSimplify functionInlineAdd( IASTFunctionCallExpression funcCall )
+	{
+		IMPastNodeSimplify  res                    =  null;
+		IMPastNode          parent                 =  this.nodeParentGet();		
+		IMPcmdNode          assignReturnFuncVarCmd =  funcReturnValueVarCreate( this, funcCall );
+		
+		parent.nodeChildrenAppend( assignReturnFuncVarCmd );
+		//create new variable X of the return type of the function. Assign NULL value;
+		//copy paste function contents ( should be inside compound stmt )
+		//assign return stmt value to var X
+		
+		//TODO:
+		//**********************************************
+		//parent.nodeChildrenAppend( "inline function" );
+		//funcDecs --> get IASTFunctionDefinition, and process
+		//change return function  to assign the return value
+		//to the assignReturnFuncVarCmd.
+		//
+		
+		//**********************************************
+				
+		return assignReturnFuncVarCmd.leftNodeGet();
+	}
+	
+	
 	@Override
 	public void initNode( IASTNode node ) 
 	{
@@ -24,7 +82,17 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		if( op == IASTBinaryExpression.op_assign )
 		{
 			this.lhs  =  ASTBuilder.IMParseExpr( stmt.getOperand1() , this );
-			this.rhs  =  ASTBuilder.IMParseExpr( stmt.getOperand2() , this );										
+			
+			IASTExpression rhsStmt = stmt.getOperand2();
+			
+			if( rhsStmt instanceof IASTFunctionCallExpression )
+			{
+				this.rhs  =  functionInlineAdd( ( IASTFunctionCallExpression )rhsStmt );				
+			}
+			else
+			{
+				this.rhs  =  ASTBuilder.IMParseExpr( rhsStmt , this );
+			}
 		}
 		else
 		{
@@ -61,25 +129,6 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		this.lhs                      =  lhs;
 		this.rhs                      =  rhs;
 	}	
-		
-	
-	/*
-	public static String cmdStmtStrGet( String lhs, String rhs, int op )
-	{
-		String stmtStr= "";
-		
-		if( rhs.equals( CNullConstant ) )
-		{
-			stmtStr = "x:=null{" + rhs + "}";
-		}
-		else
-		{
-			stmtStr = "x:=y{" + lhs + "," + rhs + "}";
-		}
-
-		return stmtStr;
-	}
-	*/
 	
 	
 	@Override

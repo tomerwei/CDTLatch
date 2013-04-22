@@ -29,11 +29,12 @@ abstract public class AbstractIMPastNode implements IMPastNode {
 	}
 
 	
+	/*
 	public IMPastNode nodeParentGet(IMPastNode node) 
 	{		
-		return parent;
+		return parent.nodeParentGet();
 	}
-
+	 */
 	
 	public List<IMPastNode> nodeChildrenGet(IMPastNode node) 
 	{	

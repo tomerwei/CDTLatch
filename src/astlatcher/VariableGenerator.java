@@ -31,6 +31,21 @@ public class VariableGenerator {
 		return nextVarName;		
 	}
 	
+	public  static String nextVarNameGet( String prefix )	
+	{
+		boolean gotNewName = false;
+		String nextVarName =  "";
+		
+		while( !gotNewName )
+		{
+			nextVarName    =  prefix + nextVarIdx;			
+			nextVarIdx     =  nextVarIdx + 1;			
+			gotNewName     =  nextVarNameSet( nextVarName );		
+		}
+		
+		return nextVarName;		
+	}	
+	
 	private static boolean nextVarNameSet( String varName )
 	{
 		boolean isSet = false;
