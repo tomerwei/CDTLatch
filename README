@@ -1,10 +1,18 @@
 Welcome!
 
 Please add the following jar files to the project:
+--------------------------------------------------
 org.eclipse.cdt.core_5.3.2.201211091924.jar
 org.eclipse.core.resources.spysupport_1.4.0.200607141315.jar
 org.eclipse.core.tools.resources_1.4.0.200607141315.jar
 org.eclipse.core.tools_1.4.0.200607141315.jar
 org.eclipse.equinox.common_3.6.100.v20120522-1841.jar
 org.eclipse.osgi_3.8.2.v20130124-134944.jar
+
+
+
+
+For running the fol-tool folder, enter in terminal:
+--------------------------------------------------
+python analyze.py  $PWD/IMDEA.Imtel/fol/examples/sll-find-ast.imp 
 
