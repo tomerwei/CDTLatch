@@ -34,4 +34,6 @@ public interface IMPastNode {
 	
 	
 	public String prettyPrint( int indent );
+	
+	public String prettyPrintAST( int indent );
 }

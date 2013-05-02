@@ -2,20 +2,13 @@ package astlatcher;
 
 import java.util.HashSet;
 
-public class VariableGenerator {
-	
+public class InvariantGenerator {
+
 	static          int                 nextVarIdx      = 1;		
-	private static  String              varPrefix       = "x_";
-	private static  HashSet < String >  globalVarTable  = new HashSet< String >();
+	private static  String              varPrefix       = "I";
+	private static  HashSet < String >  globalInvariantTable  = new HashSet< String >();
 		
-	/*
-	VariableGenerator( )
-	{
-		this.globalVarTable = new HashSet< String >();
-		this.nextVarIdx     = 1;
-	}
-	*/
-	
+
 	public  static String nextVarNameGet()	
 	{
 		boolean gotNewName = false;
@@ -33,8 +26,8 @@ public class VariableGenerator {
 	
 	public  static String nextVarNameGet( String prefix )	
 	{
-		boolean gotNewName = nextVarNameSet( prefix );
-		String nextVarName = gotNewName? prefix : "";
+		boolean gotNewName = false;
+		String nextVarName =  "";
 		
 		while( !gotNewName )
 		{
@@ -50,14 +43,13 @@ public class VariableGenerator {
 	{
 		boolean isSet = false;
 		
-		if( varName.length() > 0 && !globalVarTable.contains( varName ) )
+		if( !globalInvariantTable.contains( varName ) )
 		{
-			globalVarTable.add( varName );
+			globalInvariantTable.add( varName );
 			isSet = true;
 		}
 		
 		return isSet;
 	}
-	
-
 }
+	

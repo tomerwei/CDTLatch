@@ -12,6 +12,7 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	}
 
 	private  IMPastNodeSimplify  boolCondition;
+	private  String              invarient;
 	private  IMPastNode          loopBody;
 	
 	
@@ -40,7 +41,7 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	@Override
 	public String toString()
 	{
-		return "while '{" + boolCondition.toString() +"', I, " + loopBody.toString() +"}" ;		
+		return "while {" + boolCondition.toString() +", I, " + loopBody.toString() +"}" ;		
 	}
 	
 	private void simplifyBoolCondition( ) 	
@@ -78,5 +79,29 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	public String prettyPrint( int indent ) {
 		
 		return prettyPrintWhille( indent ) ;				
+	}
+
+	private String prettyPrintWhileAST( int indent ) {
+		
+		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
+				"while {" + boolCondition.toString() + ",\n" );
+		
+		String     invariantName    =  InvariantGenerator.nextVarNameGet();
+		
+		res.append( ASTBuilder.indentTabGet( indent ) + invariantName + ",\n");
+		
+		res.append( loopBody.prettyPrintAST( indent  ) );
+		
+		res.append( ASTBuilder.indentTabGet( indent ) + "}\n");
+		
+		String result = res.toString();
+						
+		return result;				
+	}	
+	
+	public String prettyPrintAST( int indent ) 
+	{
+		
+		return prettyPrintWhileAST( indent ); 				
 	}	
 }

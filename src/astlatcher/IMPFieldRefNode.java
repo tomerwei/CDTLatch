@@ -36,7 +36,7 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 	
 	public String ownerGet()
 	{
-		return "'" + owner + "'";
+		return "" + owner + "";
 	}
 	
 	
@@ -74,4 +74,13 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		
 		return owner + "." + fieldName; 				
 	}
+	
+	public String prettyPrintAST( int indent ) 
+	{
+		
+		return this.toString(); 				
+	}
+	
 }
+
+

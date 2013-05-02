@@ -6,6 +6,7 @@ import org.eclipse.cdt.core.dom.ast.IASTNode;
 public class IMPidNode extends IMPastNodeSimplify{
 
 	String name;
+	String type;
 	
 	public IMPidNode( IMPastNode parent ) 
 	{
@@ -16,7 +17,12 @@ public class IMPidNode extends IMPastNodeSimplify{
 	@Override
 	public void initNode( IASTNode node ) 
 	{				
-		this.name = ( (IASTIdExpression)node ).getName().toString() ;		
+		IASTIdExpression n = ( IASTIdExpression )node;
+		
+		this.name = ( (IASTIdExpression)node ).getName().toString() ;
+					
+						
+		
 	}
 	
 	public void initNode( String varName ) 
@@ -27,8 +33,8 @@ public class IMPidNode extends IMPastNodeSimplify{
 	
 	@Override 
 	public String toString() 
-	{
-		return "'" + name  + "'";
+	{		
+		return name;
 	}
 
 	@Override
@@ -46,6 +52,16 @@ public class IMPidNode extends IMPastNodeSimplify{
 	public String prettyPrint( int indent ) {
 		
 		return name;			
-	}	
+	}
+	
+	public String prettyPrintAST( int indent ) 
+	{		
+		return this.toString(); 				
+	}
+	
+	public String typeGet()
+	{
+		return type;
+	}
 
 }

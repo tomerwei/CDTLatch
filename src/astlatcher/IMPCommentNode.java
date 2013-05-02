@@ -24,14 +24,35 @@ public class IMPCommentNode extends AbstractIMPastNode {
 		this.comment = "#{" + node.getRawSignature() + "}";		
 	}
 	
+	/** initializes a command node with lhs := rhs
+	 * @param lhs
+	 * @param rhs
+	 */	
+	public void initNode( String lhs, String rhs )
+	{
+		this.comment = "#{" + lhs + " := " + rhs + "}";		
+	}
+	
+	public void initNode( IMPastNode node )
+	{
+		this.comment = "#{" + node.toString() + "}";		
+	}
+
+	
 	@Override
 	public String toString()
 	{
-		return comment;		
+		return comment;
+		//return "";
 	}
 	
 	public String prettyPrint( int indent ) {
 		
 		return ASTBuilder.indentTabGet( indent ) + toString() + "\n";				
 	}
+	
+	public String prettyPrintAST( int indent ) {
+		
+		return ASTBuilder.indentTabGet( indent ) + toString() + "\n";				
+	}	
 }

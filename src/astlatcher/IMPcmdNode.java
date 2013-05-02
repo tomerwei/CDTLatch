@@ -79,6 +79,7 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		IASTBinaryExpression   stmt   =  (IASTBinaryExpression)node;		
 		this.op                       =  stmt.getOperator();
 		
+		
 		if( op == IASTBinaryExpression.op_assign )
 		{
 			this.lhs  =  ASTBuilder.IMParseExpr( stmt.getOperand1() , this );
@@ -93,6 +94,8 @@ public class IMPcmdNode extends AbstractIMPastNode {
 			{
 				this.rhs  =  ASTBuilder.IMParseExpr( rhsStmt , this );
 			}
+			
+			
 		}
 		else
 		{
@@ -174,6 +177,8 @@ public class IMPcmdNode extends AbstractIMPastNode {
 			rExp     =  rhs.toString();
 		}
 		
+		
+		
 		res = x + ":=" + y + "{" + lExp + midComma + rExp  + "}";
 		
 		return res; 
@@ -209,4 +214,12 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		return res;				
 	}
 
+	public String prettyPrintAST( int indent ) 
+	{
+		String   res   = ASTBuilder.indentTabGet( indent ) + toString() + "\n";			
+		
+		return res;				
+	}
+	
+	
 }

@@ -11,9 +11,18 @@ public class IMPliteralNode extends IMPidNode {
 	}
 	
 	@Override
-	public void initNode( IASTNode node ) 
-	{				
-		this.name = "Literal{" + ((IASTLiteralExpression) node).getRawSignature() + "}";		
+	public void initNode( IASTNode node )	
+	{
+		String literalStr = ((IASTLiteralExpression) node).getRawSignature();
+		
+		if( literalStr.equalsIgnoreCase( ASTBuilder.nullStrGet() ) )
+		{
+			this.name = ASTBuilder.nullStrGet();
+		}
+		else
+		{
+			this.name = "Literal{" + literalStr + "}";
+		}
 	}
 	
 	

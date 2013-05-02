@@ -181,5 +181,11 @@ public class IMPexprNode extends IMPastNodeSimplify
 		
 		return "(" + lhs.prettyPrint( 0 ) + ASTBuilder.impOperandGet( op ) + rhs.prettyPrint( 0 ) + ")";				
 	}
+	
+	
+	public String prettyPrintAST( int indent ) {
+		
+		return this.toString();
+	}	
 }
 
