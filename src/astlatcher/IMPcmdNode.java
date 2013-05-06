@@ -1,8 +1,10 @@
 package astlatcher;
 
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
+import org.eclipse.cdt.core.dom.ast.IASTEqualsInitializer;
 import org.eclipse.cdt.core.dom.ast.IASTExpression;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionCallExpression;
+import org.eclipse.cdt.core.dom.ast.IASTInitializer;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 
 
@@ -131,7 +133,31 @@ public class IMPcmdNode extends AbstractIMPastNode {
 		this.op                       =  IASTBinaryExpression.op_assign;		
 		this.lhs                      =  lhs;
 		this.rhs                      =  rhs;
-	}	
+	}
+	
+	
+	
+	public void initNode( IMPSymbol s )
+	{
+		
+		if( s.canInit() )
+		{
+			IASTNode i  =  s.initNodeGet();
+			this.op     =  IASTBinaryExpression.op_assign;
+						
+			IMPidNode   assignedVar  =  new IMPidNode( this );	
+			assignedVar.initNode( s.nameGet() );
+			
+			this.lhs    =  assignedVar;
+			this.rhs    =  ASTBuilder.IMParseExpr( i , this );						
+		}
+		else
+		{
+			System.out.println( "Error: Cannot init node " + s.nameGet() );
+		}
+		
+	}
+	
 	
 	
 	@Override

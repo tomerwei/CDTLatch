@@ -10,6 +10,7 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 	private String   owner;
 	private boolean  isNextField;
 	
+	
 	public IMPFieldRefNode( IMPastNode parent ) 
 	{
 		super(parent);
@@ -23,14 +24,13 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		IASTFieldReference stmt =  ( IASTFieldReference )node;		
 		this.fieldName          =  stmt.getFieldName().toString();
 		this.owner              =  stmt.getFieldOwner().getRawSignature();				
-		this.name               =  "'" + owner + "." + fieldName + "'";		            
-		this.isNextField        =  ASTBuilder.isNextField( fieldName );
+		this.name               =  owner + "." + fieldName;		            
+		//this.isNextField      =  ASTBuilder.isNextField( fieldName );
 				
 		if( isNextField )
 		{
 			this.fieldName      = ASTBuilder.nextField;
-		}		
-					
+		}						
 	}
 	
 	
@@ -46,15 +46,19 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 		return name;
 	}
 	
+	
 	public boolean isNextField()
 	{
-		return isNextField;
+		return ASTBuilder.isNextField( fieldName );
 	}
 
 
 	@Override
-	public boolean isSimple() {		
-		return isNextField();
+	public boolean isSimple() 
+	{	
+		boolean isNextField = isNextField();
+		
+		return isNextField;
 	}
 
 
@@ -65,15 +69,17 @@ public class IMPFieldRefNode extends IMPastNodeSimplify{
 	
 	
 	@Override
-	public void simplify(IMPastNode exprTopParent) {
+	public void simplify(IMPastNode exprTopParent) 
+	{
 		
 	}
 
+	
 	public String prettyPrint( int indent ) 
-	{
-		
+	{		
 		return owner + "." + fieldName; 				
 	}
+	
 	
 	public String prettyPrintAST( int indent ) 
 	{

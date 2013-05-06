@@ -1,6 +1,8 @@
 package astlatcher;
 
 import org.eclipse.cdt.core.dom.ast.IASTDeclarator;
+import org.eclipse.cdt.core.dom.ast.IASTEqualsInitializer;
+import org.eclipse.cdt.core.dom.ast.IASTInitializer;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.c.ICASTDeclSpecifier;
 import org.eclipse.cdt.core.dom.ast.c.ICASTTypedefNameSpecifier;
@@ -11,10 +13,11 @@ public class IMPSymbol {
 	public   static  String  cBoolType   =  "bool";
 	public   static  String  impVarType  =  "v";
 	
-	private  String  impType;
-	private  String  cType;
-	private  String  name;
-	private  String  originalDec;
+	private  String          impType;
+	private  String          cType;
+	private  String          name;
+	private  String          originalDec;
+	private  IASTInitializer initNode;
 	
 	public IMPSymbol()
 	{
@@ -22,6 +25,7 @@ public class IMPSymbol {
 		this.cType        =  "";
 		this.name         =  "";
 		this.originalDec  =  "";
+		this.initNode     =  null;
 	}
 	
 	public String nameGet()
@@ -53,9 +57,8 @@ public class IMPSymbol {
 		{
 			IASTDeclarator n = (IASTDeclarator)node;
 			
-			this.name = n.getName().toString();
-			
-			//findName( n );
+			this.name      = n.getName().toString();
+			this.initNode  = n.getInitializer();
 		}
 		else
 		{
@@ -73,7 +76,46 @@ public class IMPSymbol {
 		}		
 	}
 	
-	//node is of type IASTParameterDeclaration 
+	
+	public IASTInitializer initNodeGet()
+	{
+		return  initNode;
+	}	
+	
+
+	/**Checks If variable is of type 'v', and has a initializer command.
+	 * @return
+	 */
+	public boolean needsInitCmd()
+	{
+		return  impType.equals( impVarType ) && initNode != null;
+	}
+	
+	
+	/**Checks if we can create initilizing cmd
+	 * 
+	 * @return
+	 */
+	public boolean canInit()
+	{
+		boolean          res  =  false;
+		IASTInitializer  i    =  initNode;
+		
+		if( i != null )
+		{
+			res = i instanceof IASTEqualsInitializer;
+
+		}
+		else
+		{
+			System.out.println( "Cannot init. initializer is of type " + i.getClass().toString() );
+		}
+			
+		return res;		
+	}
+	
+	
+	//node is of type IASTParameterDeclaration or IASTDeclarationStatement
 	public void initSymbol( IASTNode node )
 	{
 		this.originalDec = node.getRawSignature();		

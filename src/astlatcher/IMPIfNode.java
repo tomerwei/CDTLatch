@@ -59,6 +59,7 @@ public class IMPIfNode extends AbstractIMPastNode {
 		
 		boolean isSinglePredicate =  res instanceof IMPidNode;
 		
+		/*
 		if( !isSinglePredicate )
 		{
 			IMPastNode      parent            =  this.nodeParentGet();			
@@ -74,10 +75,11 @@ public class IMPIfNode extends AbstractIMPastNode {
 
 			res = boolPredicate;
 			
-			/* checks that the condition is a single boolean operator
-			if not --> creates a new bool variable, value it according to the conditionExpression
-			and replace the conditionExpression with the new variable */
+			//checks that the condition is a single boolean operator
+			//if not --> creates a new bool variable, value it according to the conditionExpression
+			//and replace the conditionExpression with the new variable 
 		}
+		*/
 		
 		return res;
 	}
@@ -119,11 +121,14 @@ public class IMPIfNode extends AbstractIMPastNode {
 		simplifyBoolCondition();
 	}
 
+	
 	@Override
 	public String toString()
 	{
-		return "if{C(" + boolCondition.toString() +")," + thenBody.toString() + "," + elseBody.toString() +"}"  ;		
+		//return "if{C(" + boolCondition.toString() +")," + thenBody.toString() + "," + elseBody.toString() +"}"  ;
+		return "if{ " + boolCondition.toString() +"," + thenBody.toString() + "," + elseBody.toString() +"}"  ;
 	}		
+	
 	
 	private void simplifyBoolCondition( ) 	
 	{
@@ -147,9 +152,9 @@ public class IMPIfNode extends AbstractIMPastNode {
 		System.out.println( "Error: should not append to 'if' node " + node.toString() );
 	}
 	
-	private String prettyPrintIf( int indent ) {
-		
-		StringBuilder res = new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
+	private String prettyPrintIf( int indent ) 
+	{	
+		StringBuilder res  =  new StringBuilder( ASTBuilder.indentTabGet( indent ) + 
 				"if $" + boolCondition.toString() + "$ then\n" );			
 		
 		res.append( thenBody.prettyPrint( indent  ) );

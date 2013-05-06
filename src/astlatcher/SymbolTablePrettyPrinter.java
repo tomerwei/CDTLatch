@@ -4,6 +4,10 @@ import java.io.PrintStream;
 
 import static java.lang.String.format;
 
+//code taken from:
+//http://stackoverflow.com/questions/11383070/pretty-print-2d-array-in-java
+//
+
 public final class SymbolTablePrettyPrinter {
 
     private static final char BORDER_KNOT = '+';

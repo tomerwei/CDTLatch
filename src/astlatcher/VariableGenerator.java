@@ -16,7 +16,7 @@ public class VariableGenerator {
 	}
 	*/
 	
-	public  static String nextVarNameGet()	
+	public  static String nextVarNameGet( )	
 	{
 		boolean gotNewName = false;
 		String nextVarName =  "";
@@ -28,8 +28,11 @@ public class VariableGenerator {
 			gotNewName     =  nextVarNameSet( nextVarName );		
 		}
 		
+		ASTBuilder.symbolTableAdd( nextVarName );
+		
 		return nextVarName;		
 	}
+	
 	
 	public  static String nextVarNameGet( String prefix )	
 	{
@@ -43,8 +46,11 @@ public class VariableGenerator {
 			gotNewName     =  nextVarNameSet( nextVarName );		
 		}
 		
+		ASTBuilder.symbolTableAdd( nextVarName );
+		
 		return nextVarName;		
 	}	
+	
 	
 	private static boolean nextVarNameSet( String varName )
 	{
@@ -57,7 +63,6 @@ public class VariableGenerator {
 		}
 		
 		return isSet;
-	}
-	
+	}	
 
 }

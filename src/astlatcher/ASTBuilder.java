@@ -17,6 +17,7 @@ import org.eclipse.cdt.core.dom.ast.IASTFunctionCallExpression;
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
 import org.eclipse.cdt.core.dom.ast.IASTIdExpression;
 import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
+import org.eclipse.cdt.core.dom.ast.IASTInitializer;
 import org.eclipse.cdt.core.dom.ast.IASTLiteralExpression;
 import org.eclipse.cdt.core.dom.ast.IASTName;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -80,6 +81,22 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			symbolTableVars.add( p );			
 		}
 		*/
+	}
+	
+	public static void symbolTableAdd( String varName )		
+	{
+		IMPSymbol s = new IMPSymbol();
+		
+		s.nameSet( varName );
+		s.impTypeSet( IMPSymbol.impVarType );
+		
+		symbolTable.symbolAdd( s);
+	}
+	
+	
+	public static void symbolTableAdd( IMPSymbol s )
+	{
+		symbolTable.symbolAdd( s);
 	}
 
 	
@@ -358,6 +375,33 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			result = n;							
 		}
+		else if( node instanceof IASTInitializer )
+		{
+			IASTInitializer n    =  (IASTInitializer)node;
+			IASTNode      []arr  =  n.getChildren();
+			
+			if( arr.length == 1 )
+			{
+				return IMParseExpr( arr[0], parent );
+			}
+			else
+			{
+				System.out.println( "Not expected, more than 1 child in initializer " 
+			             + node.getRawSignature() + " " + node.getClass().getName() );
+			}
+		}
+		//TODO:
+		//should be removed later --> processing function calls should be different
+		//e.g. by calling the function for inlining.
+		else if( node instanceof IASTFunctionCallExpression )
+		{
+			IASTFunctionCallExpression fCall = (IASTFunctionCallExpression)node;
+			
+			IMPidNode n = new IMPidNode( parent );
+			n.initNode( fCall.getRawSignature()  );
+			
+			result = n;							
+		}		
 		//IASTFunctionCallExpression
 		else 
 		{
@@ -372,8 +416,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	{
 		IMPastNode result = null;
 	
-		//debug
-		/*
+		//debug		
 		try 
 		{
 			System.out.println( "[ " + node.getChildren().length + " " + 
@@ -383,7 +426,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
-		*/
+		
 				
 		if( node instanceof IASTDeclarationStatement ||
 			node instanceof IASTParameterDeclaration )
@@ -394,10 +437,18 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			 */
 			IMPSymbol s = new IMPSymbol();
 			s.initSymbol(node);
-			System.out.println( "Symbol Table: " + s );
 			
 			symbolTable.symbolAdd( s );
-		}
+			
+			if( s.needsInitCmd() && s.canInit() )
+			{
+				
+				IMPcmdNode n = new IMPcmdNode( parent );
+				n.initNode( s );
+				
+				result = n;								
+			}
+		}		
 		
 		if( node instanceof IASTBinaryExpression )
 		{
@@ -427,8 +478,9 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			result = n;			
 		}
-		
-		else if( node instanceof IASTReturnStatement      ||
+		/*
+		else if( result == null //TODO fix this later, we want a comment node
+		         node instanceof IASTReturnStatement      ||
 				 node instanceof IASTDeclarationStatement ||
 				 node instanceof IASTParameterDeclaration )
 		{				
@@ -438,7 +490,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			
 			result = n;			
 		}		
-		
+		*/
 		else if( node instanceof IASTCompoundStatement )
 		{
 			IMPcompoundStmtNode n = new IMPcompoundStmtNode( parent );

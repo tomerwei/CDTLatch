@@ -32,20 +32,24 @@ public class IMPexprNode extends IMPastNodeSimplify
 		return lhs;
 	}
 	
+	
 	public void leftNodeSet( IMPastNodeSimplify n )
 	{
 		this.lhs = n;
 	}
+	
 	
 	public IMPastNodeSimplify rightNodeGet()
 	{
 		return rhs;
 	}
 	
+	
 	public void rightNodeSet( IMPastNodeSimplify n )
 	{
 		this.rhs = n;
 	}
+	
 	
 	@Override
 	public String toString()
@@ -54,6 +58,7 @@ public class IMPexprNode extends IMPastNodeSimplify
 		return "(" + lhs.toString() + ASTBuilder.impOperandGet( op ) + rhs.toString() + ")";				
 	}
 
+	
 	@Override
 	public boolean isSimple() 
 	{	
@@ -69,6 +74,7 @@ public class IMPexprNode extends IMPastNodeSimplify
 		return isLhsAtomic && isRhsAtomic;
 	}
 
+	
 	/**
 	 * @param node
 	 * @param isLeft - indicates whether the left or right side of the expr is the field
@@ -176,6 +182,7 @@ public class IMPexprNode extends IMPastNodeSimplify
 			}
 		}		
 	}
+
 	
 	public String prettyPrint( int indent ) {
 		

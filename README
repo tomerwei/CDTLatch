@@ -16,3 +16,11 @@ For running the fol-tool folder, enter in terminal:
 --------------------------------------------------
 python analyze.py  $PWD/IMDEA.Imtel/fol/examples/sll-find-ast.imp 
 
+
+Reminder:
+add to sll.fol:
+#[wp x.data:=y](x, _ , y, Q) := x!=null & dr( data(u,v):= (u = x & v = y ) | u != x & data(u,v) , Q)
+
+#[wp x:=y.data](x, y, _, Q) := y != null & dr( data(u,v):= (u = x & v = y ) | u != y & data(u,v) , Q)
+
+
