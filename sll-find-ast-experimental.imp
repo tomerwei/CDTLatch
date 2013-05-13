@@ -1,0 +1,30 @@
+t : V
+x_1 : V
+key : V
+flag : V
+
+data: V * V -> bool
+[wp x.data:=y](x, _ , y, Q) := x!=null & dr( data(u,v):= (u = x & v = y ) | u != x & data(u,v) , Q)
+[wp x:=y.data](x, y, _, Q)  := y!=null & forall z (data(y,z) -> dr(x:=z, Q)) & 
+                               (forall z (~data(y,z) ) -> dr(x:=null, Q ) )
+forall x y z (data(x,y) & data(x,z) -> y=z)
+forall z (~data(null,z))
+
+
+ast([;{;{x:=y{i,h},x:=null{j},x:=null{t},
+     while {((i != null) & (t = null)), I, 
+     ;{ x:=y.data{x_1,i,data},if{ x_1 = key,;{x:=y{t,i}},;{x:=y.n{i,i,n}}}}}}}])
+
+sll(n*)
+
+I := P & (i != null -> n*(h,i)) &
+     (forall m (n*(h,m) -> ~n*(i,m) -> ~data(m,key) )) &
+     (t != null -> (x_1 = key) & data(i,x_1) ) 
+     
+Q := ite( i = null, ~exists m (n*(h,m) & data(m,key) ),
+     data(i,key) & n*(h,i) & ~exists m (n*(h,m) & n+_(m,i) & data(m,key) ))
+
+P := key != null
+verify(P,program, Q)
+ 
+
