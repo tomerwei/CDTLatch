@@ -42,12 +42,13 @@ public class IMPWhileNode extends AbstractIMPastNode{
 	public String toString()
 	{
 		return "while {" + boolCondition.toString() +", I, " + loopBody.toString() +"}" ;		
+		
 	}
 	
 	private void simplifyBoolCondition( ) 	
 	{	
 		
-		if( !boolCondition.isSimple() )
+		if( boolCondition != null && !boolCondition.isSimple() )
 		{
 			boolCondition.simplify( this );
 		}		

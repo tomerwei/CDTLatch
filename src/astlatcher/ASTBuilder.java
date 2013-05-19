@@ -2,7 +2,6 @@ package astlatcher;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.cdt.core.dom.ast.ASTTypeUtil;
@@ -22,13 +21,11 @@ import org.eclipse.cdt.core.dom.ast.IASTLiteralExpression;
 import org.eclipse.cdt.core.dom.ast.IASTName;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IASTParameterDeclaration;
-import org.eclipse.cdt.core.dom.ast.IASTReturnStatement;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 import org.eclipse.cdt.core.dom.ast.IASTWhileStatement;
 import org.eclipse.cdt.core.dom.ast.IBinding;
 import org.eclipse.cdt.core.dom.ast.IFunction;
 import org.eclipse.cdt.core.dom.ast.IType;
-import org.eclipse.cdt.core.dom.ast.c.ICASTTypedefNameSpecifier;
 import org.eclipse.cdt.core.parser.DefaultLogService;
 import org.eclipse.cdt.core.parser.FileContent;
 import org.eclipse.cdt.core.parser.IncludeFileContentProvider;
@@ -38,7 +35,7 @@ import org.eclipse.core.runtime.CoreException;
 public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		
 	private String                      pathToFile;
-	private String []                   funcs;
+	private HashSet<String>             funcs;
 	private StringBuilder               output;
 	private VariableGenerator           varGen;
 	private static HashSet <String>     nextFields;
@@ -47,6 +44,7 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	public static String                IMPSkipCmd             = "skip";
 	public static String                nextField              = "n";
 	public static SymbolTable           symbolTable;
+	public static HashSet<String>       valueFieldNames;                  
 	 
 	
 	
@@ -54,12 +52,11 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	{
 		super();
 		
-		this.pathToFile           =  filename;
-		this.funcs                =  funcs;
+		this.pathToFile           =  filename;		
 		this.output               =  new StringBuilder();
 		this.varGen               =  new VariableGenerator();
 		
-		initPointers( ptrs );
+		initPointers( ptrs, funcs );
 		initNextFields( nextFlds );
 		ASTinit();
 		interestingFuncsProcess();
@@ -67,11 +64,18 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	}
 	
 	
-	private void initPointers( String [] ptrs )
-	{
-		
+	private void initPointers( String [] ptrs, String [] funcsArr )
+	{		
 		symbolTable         =  new SymbolTable();
-		funcDecs            =  new HashMap <String, IASTFunctionDefinition > ();
+		funcDecs            =  new HashMap <String, IASTFunctionDefinition >();
+		valueFieldNames     =  new HashSet <String>();
+		this.funcs          =  new HashSet <String>();
+
+		for( String f : funcsArr )
+		{
+			funcs.add( f );
+		}
+		
 		/*
 		symbolTableVars     =  new HashSet<String>();		
 		symbolTableVars.add( CNullConstant );
@@ -81,6 +85,58 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 			symbolTableVars.add( p );			
 		}
 		*/
+	}
+	
+	
+	public static void valueFieldNameAdd( String fieldName )
+	{
+		valueFieldNames.add( fieldName );
+	}
+
+	
+	
+	/*	
+	"data: V * V -> bool\n" +
+	"[wp x.data:=y](x, _ , y, Q) := x!=null & dr( data(u,v):= (u = x & v = y ) | u != x & data(u,v) , Q)\n"+
+	"[wp x:=y.data](x, y, _, Q)  := y!=null & forall z (data(y,z) -> dr(x:=z, Q)) &\n"+ 
+	                               "(forall z (~data(y,z) ) -> dr(x:=null, Q ) )\n"+
+
+	"forall x y z (data(x,y) & data(x,z) -> y=z)\n"+
+	"forall z (~data(null,z));\n";
+	*/		
+	public String valueFieldsDefGet()
+	{
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for( String s : valueFieldNames )
+		{
+			sb.append(  s + ": V * V -> bool\n" );
+			sb.append( "[wp x."+ s + ":=y](x, _ , y, Q) := x!=null & dr( "+ s + "(u,v):= " +			
+					"(u = x & v = y ) | u != x & "+ s +"(u,v) , Q)\n" );
+			
+			sb.append("[wp x:=y."+s+"](x, y, _, Q)  := y!=null & forall z ("+s+"(y,z) -> dr(x:=z, Q)) &\n"+ 
+                      "                              (forall z (~"+s+"(y,z) ) -> dr(x:=null, Q ) )\n" );
+						
+			sb.append( "forall x y z ( "+ s + "(x,y) & "+s+"(x,z) -> y=z)\n" );
+			
+			sb.append( "forall z (~"+ s +"(null,z))\n" );
+		}
+		
+		return sb.toString();
+	}
+	
+	
+	private String variableDefsGet()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		for( String var : symbolTable.symbolsIteratorGet() )
+		{
+			sb.append( var + " : V\n" );
+		}
+				
+		return sb.toString();
 	}
 	
 	public static void symbolTableAdd( String varName )		
@@ -120,13 +176,25 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 				
 				IASTFunctionDefinition dec = funcDecs.get( funcName );
 				
-				output.append( "# " + funcName + "():\n");	
+				output.append( "# " + funcName + "():\n");
+				
+				System.out.println( "AST output" );
+				System.out.println( "----------\n" );
 				
 				IMPcompoundStmtNode  par      =  new IMPcompoundStmtNode( null );
 				IMPastNode           check    =  IMPParseStmt( dec, par );
 				
+				System.out.println( variableDefsGet() );
+				
+				System.out.println( valueFieldsDefGet() );
+						
 				visitIMPastNode( par );				
 				//System.out.println( par.prettyPrint( 0 ) );
+				
+				System.out.println( "" );
+				
+				System.out.println( "Symbol Table" );
+				System.out.println( "------------\n" );
 				
 				symbolTable.toString();
 				
@@ -202,7 +270,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 					if( type != null )
 					{
 						//check if funcsNames contain this function						
-						if( name.toString().equals( funcs[0] ) )
+						//if( name.toString().equals( funcs[0] ) )
+						if( funcs.contains( name ) )							
 						{							
 							System.out.print( "Referencing " + name + ", type " + ASTTypeUtil.getType(type) + "\n" );
 						}					
@@ -259,7 +328,9 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	
 	private boolean isFuncIntersting( String name )
 	{
-		return funcs[0].equals( name );
+		boolean res = funcs.contains( name );
+		
+		return res;
 	}
 	
 	public void prettyPrintNode( IASTNode node )
@@ -416,7 +487,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	{
 		IMPastNode result = null;
 	
-		//debug		
+		//debug
+		/*
 		try 
 		{
 			System.out.println( "[ " + node.getChildren().length + " " + 
@@ -426,8 +498,8 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 		{		
 			System.out.println( "[ noSyntax " + node.getClass().getName() + " ]" );
 		}
-		
-				
+		*/
+					
 		if( node instanceof IASTDeclarationStatement ||
 			node instanceof IASTParameterDeclaration )
 		{
@@ -525,13 +597,13 @@ public class ASTBuilder extends org.eclipse.cdt.core.dom.ast.gnu.c.GCCLanguage {
 	
 	public static void main( String [] args )
 	{
-		String [] interestingFuncs = { "my_find" };
+		String [] interestingFuncs = { "my_find" , "my_delete" };
 		String [] nextFields       = { "next" };
 		String [] ptrs             = { "t", "j", "i" };
 		
 		//ASTBuilder temp = new ASTBuilder( "/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/thttpd.c" );
 		ASTBuilder temp = new ASTBuilder( 
-				"/home/tomerwei/workspace/CDTLatch/workfiles/thttpd-2.25b/stupidcfile.c",
+				"/home/tomerwei/workspace/CDTLatch/workfiles/examples/delete.c",
 				interestingFuncs,
 				nextFields,
 				ptrs );		

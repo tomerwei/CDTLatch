@@ -60,4 +60,10 @@ public class SymbolTable {
 		printer.print(table);		
 		return "";		
 	}
+
+	public HashSet<String> symbolsIteratorGet()
+	{		
+		return symbolTableVars;
+	}
+	
 }
